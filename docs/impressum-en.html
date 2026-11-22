@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Legal notice – SneakPlay</title>
+<meta name="theme-color" content="#17122F">
+<script>/* Darstellung wie in der App gewählt */try{var m=JSON.parse(localStorage.getItem("sneakplay.theme"));if(m==="light"||m==="dark")document.documentElement.setAttribute("data-theme",m);}catch(e){}</script>
+<style>
+  :root { --bg:#17122F; --card:#261F52; --text:#F4F1FF; --muted:#ABA4D8; --ink:#FF8FB0; --line:#3A3270; color-scheme:dark; }
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) { --bg:#F6F3FF; --card:#FFFFFF; --text:#1F1640; --muted:#655C8F; --ink:#C42A60; --line:#DDD5F5; color-scheme:light; }
+  }
+  :root[data-theme="light"] { --bg:#F6F3FF; --card:#FFFFFF; --text:#1F1640; --muted:#655C8F; --ink:#C42A60; --line:#DDD5F5; color-scheme:light; }
+  * { box-sizing: border-box; }
+  body {
+    margin:0; padding:calc(24px + env(safe-area-inset-top)) 16px calc(40px + env(safe-area-inset-bottom));
+    background:var(--bg); color:var(--text);
+    font-family: ui-rounded, "SF Pro Rounded", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; line-height:1.6;
+  }
+  main { max-width:760px; margin:0 auto; background:var(--card); border:1px solid var(--line); border-radius:24px; padding:24px; }
+  h1 { font-size:clamp(26px,5vw,34px); margin:0 0 4px; line-height:1.2; }
+  h2 { font-size:clamp(18px,4vw,21px); margin:30px 0 8px; }
+  .stand { color:var(--muted); font-size:14px; margin:0 0 24px; }
+  address { font-style:normal; }
+  a { color:var(--ink); word-break:break-word; }
+  pre { white-space:pre-wrap; font-size:13px; background:var(--bg); border:1px solid var(--line); border-radius:12px; padding:12px; }
+  .links { margin-top:32px; display:flex; flex-wrap:wrap; gap:10px; }
+  .links a { display:inline-block; padding:12px 20px; border-radius:999px; text-decoration:none; font-weight:700;
+             border:1px solid var(--line); color:var(--text); background:var(--card); }
+  .links a.back { background:var(--ink); border-color:var(--ink); color:#fff; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Legal Notice</h1>
+  <p class="stand">SneakPlay · Last updated: November 2026</p>
+
+  <h2>Information pursuant to Section 5 DDG (German Digital Services Act)</h2>
+  <address>
+    Wisdompeak Apps<br>
+    Owner: Simon Mählmann<br>
+    Oderstraße 13<br>
+    28844 Weyhe<br>
+    Germany
+  </address>
+
+  <h2>Contact</h2>
+  <p>Email: <a href="mailto:smaehlmann.appdev@gmail.com">smaehlmann.appdev@gmail.com</a></p>
+
+  <h2>Responsible for content pursuant to Section 18(2) MStV</h2>
+  <p>Simon Mählmann, address as above.</p>
+
+  <h2>VAT</h2>
+  <p>VAT identification number pursuant to Section 27a of the German VAT Act: DE430437820</p>
+  <p>Small business pursuant to Section 19 of the German VAT Act. No VAT is charged and no input tax is deducted.</p>
+
+  <h2>Consumer dispute resolution</h2>
+  <p>We are neither willing nor obliged to take part in dispute resolution proceedings before a consumer arbitration board.</p>
+
+  <h2>Liability for content</h2>
+  <p>The content of this app has been created with care. However, no guarantee can be given for its accuracy, completeness or timeliness. Users are responsible for any content they enter in their own lists.</p>
+
+  <h2>Liability for links</h2>
+  <p>The app and the privacy policy contain a few links to external third-party websites whose content we cannot influence. The respective provider is always responsible for that content. No legal violations were apparent at the time of linking. Should we become aware of any infringements, such links will be removed immediately.</p>
+
+  <h2>Copyright and licences</h2>
+  <p>The content, texts and game ideas created by the provider are subject to German copyright law. The app is built on open-source components; their licences are listed under <a href="lizenzen-en.html">Licences</a>.</p>
+  <div class="links">
+    <a class="back" href="index.html">Back</a>
+    <a href="datenschutz-en.html">Privacy</a>
+    <a href="impressum.html">Deutsch</a>
+  </div>
+</main>
+</body>
+</html>

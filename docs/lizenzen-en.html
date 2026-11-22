@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Licences – SneakPlay</title>
+<meta name="theme-color" content="#17122F">
+<script>/* Darstellung wie in der App gewählt */try{var m=JSON.parse(localStorage.getItem("sneakplay.theme"));if(m==="light"||m==="dark")document.documentElement.setAttribute("data-theme",m);}catch(e){}</script>
+<style>
+  :root { --bg:#17122F; --card:#261F52; --text:#F4F1FF; --muted:#ABA4D8; --ink:#FF8FB0; --line:#3A3270; color-scheme:dark; }
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) { --bg:#F6F3FF; --card:#FFFFFF; --text:#1F1640; --muted:#655C8F; --ink:#C42A60; --line:#DDD5F5; color-scheme:light; }
+  }
+  :root[data-theme="light"] { --bg:#F6F3FF; --card:#FFFFFF; --text:#1F1640; --muted:#655C8F; --ink:#C42A60; --line:#DDD5F5; color-scheme:light; }
+  * { box-sizing: border-box; }
+  body {
+    margin:0; padding:calc(24px + env(safe-area-inset-top)) 16px calc(40px + env(safe-area-inset-bottom));
+    background:var(--bg); color:var(--text);
+    font-family: ui-rounded, "SF Pro Rounded", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; line-height:1.6;
+  }
+  main { max-width:760px; margin:0 auto; background:var(--card); border:1px solid var(--line); border-radius:24px; padding:24px; }
+  h1 { font-size:clamp(26px,5vw,34px); margin:0 0 4px; line-height:1.2; }
+  h2 { font-size:clamp(18px,4vw,21px); margin:30px 0 8px; }
+  .stand { color:var(--muted); font-size:14px; margin:0 0 24px; }
+  address { font-style:normal; }
+  a { color:var(--ink); word-break:break-word; }
+  pre { white-space:pre-wrap; font-size:13px; background:var(--bg); border:1px solid var(--line); border-radius:12px; padding:12px; }
+  .links { margin-top:32px; display:flex; flex-wrap:wrap; gap:10px; }
+  .links a { display:inline-block; padding:12px 20px; border-radius:999px; text-decoration:none; font-weight:700;
+             border:1px solid var(--line); color:var(--text); background:var(--card); }
+  .links a.back { background:var(--ink); border-color:var(--ink); color:#fff; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Licences</h1>
+  <p class="stand">SneakPlay</p>
+  <p>The game, texts, words and design of SneakPlay were created by the provider. The app is built on these open-source components:</p>
+  
+  <ul>
+    <li><b>Apache Cordova</b> – Apache License 2.0 – <a href="https://cordova.apache.org">cordova.apache.org</a></li>
+    <li><b>cordova-plugin-statusbar</b> (Apache Software Foundation) – Apache License 2.0</li>
+    <li><b>cordova-plugin-x-socialsharing</b> (Eddy Verbruggen) – MIT License</li>
+    <li><b>cordova-plugin-insomnia</b> (Eddy Verbruggen) – MIT License</li>
+  </ul>
+
+  <h2>MIT License</h2>
+  <pre>MIT License
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</pre>
+  <h2>Apache License 2.0</h2>
+  <pre>Licensed under the Apache License, Version 2.0 (the "License"); you may not use these files except in compliance with the License. You may obtain a copy of the License at
+
+    https://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.</pre>
+  <div class="links">
+    <a class="back" href="index.html">Back</a>
+    <a href="impressum-en.html">Legal notice</a>
+    <a href="lizenzen.html">Deutsch</a>
+  </div>
+</main>
+</body>
+</html>

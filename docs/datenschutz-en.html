@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Privacy – SneakPlay</title>
+<meta name="theme-color" content="#17122F">
+<script>/* Darstellung wie in der App gewählt */try{var m=JSON.parse(localStorage.getItem("sneakplay.theme"));if(m==="light"||m==="dark")document.documentElement.setAttribute("data-theme",m);}catch(e){}</script>
+<style>
+  :root { --bg:#17122F; --card:#261F52; --text:#F4F1FF; --muted:#ABA4D8; --ink:#FF8FB0; --line:#3A3270; color-scheme:dark; }
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) { --bg:#F6F3FF; --card:#FFFFFF; --text:#1F1640; --muted:#655C8F; --ink:#C42A60; --line:#DDD5F5; color-scheme:light; }
+  }
+  :root[data-theme="light"] { --bg:#F6F3FF; --card:#FFFFFF; --text:#1F1640; --muted:#655C8F; --ink:#C42A60; --line:#DDD5F5; color-scheme:light; }
+  * { box-sizing: border-box; }
+  body {
+    margin:0; padding:calc(24px + env(safe-area-inset-top)) 16px calc(40px + env(safe-area-inset-bottom));
+    background:var(--bg); color:var(--text);
+    font-family: ui-rounded, "SF Pro Rounded", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; line-height:1.6;
+  }
+  main { max-width:760px; margin:0 auto; background:var(--card); border:1px solid var(--line); border-radius:24px; padding:24px; }
+  h1 { font-size:clamp(26px,5vw,34px); margin:0 0 4px; line-height:1.2; }
+  h2 { font-size:clamp(18px,4vw,21px); margin:30px 0 8px; }
+  .stand { color:var(--muted); font-size:14px; margin:0 0 24px; }
+  address { font-style:normal; }
+  a { color:var(--ink); word-break:break-word; }
+  pre { white-space:pre-wrap; font-size:13px; background:var(--bg); border:1px solid var(--line); border-radius:12px; padding:12px; }
+  .links { margin-top:32px; display:flex; flex-wrap:wrap; gap:10px; }
+  .links a { display:inline-block; padding:12px 20px; border-radius:999px; text-decoration:none; font-weight:700;
+             border:1px solid var(--line); color:var(--text); background:var(--card); }
+  .links a.back { background:var(--ink); border-color:var(--ink); color:#fff; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Privacy Policy</h1>
+  <p class="stand">SneakPlay · Last updated: November 2026</p>
+
+  <h2>1. Controller</h2>
+  <p>The controller within the meaning of Art. 4(7) GDPR is:</p>
+  <address>
+    Wisdompeak Apps<br>
+    Owner: Simon Mählmann<br>
+    Oderstraße 13<br>
+    28844 Weyhe<br>
+    Germany<br>
+    Email: <a href="mailto:smaehlmann.appdev@gmail.com">smaehlmann.appdev@gmail.com</a>
+  </address>
+  <p>No data protection officer has been appointed, as the requirements of Art. 37 GDPR and Section 38 of the German Federal Data Protection Act (BDSG) are not met.</p>
+
+  <h2>2. Principle: no data collection</h2>
+  <p>SneakPlay does not process any personal data on servers operated by the provider. The app works entirely offline. There are no user accounts, no registration, no analytics or tracking services, no advertising and no sharing of data with third parties.</p>
+
+  <h2>3. Data stored on your device</h2>
+  <p>The following is stored exclusively in the app’s local storage on your device:</p>
+  <ul>
+    <li>the player names you enter (any nicknames will do)</li>
+    <li>the scores of the current game night</li>
+    <li>your own word lists</li>
+    <li>recently played words, so they don’t repeat too soon</li>
+    <li>settings for language, appearance, sounds, vibration, screen and game mode</li>
+  </ul>
+  <p>This data is never transmitted and cannot be seen by the provider. You can delete it in the app under “Settings → Data on this device”; removing the app deletes everything. Please do not enter sensitive information about other people in your own lists.</p>
+
+  <h2>4. Internet connections</h2>
+  <p>The app does not open any network connections on its own. It does not load fonts, libraries or content from third-party servers.</p>
+  <p>The settings contain buttons that only open something when you tap them: “Rate” opens the app’s page in the app distribution service you got the app from. “Recommend” opens your device’s share menu with a short text and a link to the app. “Send feedback” opens your email app with a prepared message (app version, operating system version, language). You decide what you send; the app itself transmits nothing. An email to the provider is used only to reply to you (Art. 6(1)(f) GDPR) and deleted afterwards.</p>
+
+  <h2>5. Downloading through an app distribution service</h2>
+  <p>When you download the app through an app distribution service, its operator processes data on its own responsibility (such as your account, device and time of download). The provider of this app has no influence on this. The operator’s privacy policy applies. The provider receives at most aggregated, non-personal statistics (such as the number of downloads).</p>
+
+  <h2>6. This website</h2>
+  <p>This policy and the app’s information page are also provided via GitHub Pages, a service of GitHub Inc., 88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, USA. When you open them in a browser, GitHub processes technically necessary connection data such as your IP address in order to deliver and secure the pages. The legal basis is Art. 6(1)(f) GDPR; the legitimate interest is the reliable provision of the pages. GitHub is certified under the EU-US Data Privacy Framework. Details: <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement">GitHub Privacy Statement</a>. The app itself does not retrieve anything from GitHub.</p>
+
+  <h2>7. Children</h2>
+  <p>SneakPlay is suitable for all ages but is not specifically aimed at children. The app collects no data from anyone. There is no advertising, no purchasing and no communication with other people over the internet.</p>
+
+  <h2>8. Your rights</h2>
+  <p>You have the rights of access, rectification, erasure, restriction of processing, data portability and objection under Art. 15 to 21 GDPR, as well as the right to lodge a complaint with a supervisory authority. As the provider stores no personal data, requests for access or erasure addressed to the provider will generally have nothing to act on. You can delete all data yourself in the app at any time.</p>
+
+  <h2>9. Changes to this policy</h2>
+  <p>This policy will be updated whenever app features relevant to data protection change. The current version is always available in the app.</p>
+
+  <h2>10. Contact</h2>
+  <p>For any questions about data protection, please write to <a href="mailto:smaehlmann.appdev@gmail.com">smaehlmann.appdev@gmail.com</a>.</p>
+  <div class="links">
+    <a class="back" href="index.html">Back</a>
+    <a href="impressum-en.html">Legal notice</a>
+    <a href="datenschutz.html">Deutsch</a>
+  </div>
+</main>
+</body>
+</html>

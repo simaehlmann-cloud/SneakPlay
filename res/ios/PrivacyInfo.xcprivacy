@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Privacy-Manifest für SneakPlay (Muster: MatheSnack/Drawmory).
+
+  Pflichtdatei. Fehlt sie oder ist sie leer, wird der Upload erst nach der
+  Verarbeitung zurückgewiesen – die Build-Nummer ist dann verbraucht.
+
+  SneakPlay erhebt nichts, sendet nichts und trackt nicht. Spielernamen,
+  eigene Listen und Punkte liegen nur im lokalen Speicher der App.
+
+  Einziger meldepflichtiger Zugriff: UserDefaults. Cordova legt dort eigene
+  Einstellungen ab. Grund CA92.1 = nur Daten des eigenen App-Containers.
+-->
+<plist version="1.0">
+<dict>
+    <key>NSPrivacyTracking</key>
+    <false/>
+
+    <key>NSPrivacyTrackingDomains</key>
+    <array/>
+
+    <!-- Leer und bewusst so: Die App sammelt keine Daten. -->
+    <key>NSPrivacyCollectedDataTypes</key>
+    <array/>
+
+    <key>NSPrivacyAccessedAPITypes</key>
+    <array>
+        <dict>
+            <key>NSPrivacyAccessedAPIType</key>
+            <string>NSPrivacyAccessedAPICategoryUserDefaults</string>
+            <key>NSPrivacyAccessedAPITypeReasons</key>
+            <array>
+                <string>CA92.1</string>
+            </array>
+        </dict>
+    </array>
+</dict>
+</plist>

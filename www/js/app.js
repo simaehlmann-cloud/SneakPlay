@@ -132,7 +132,7 @@ function resumeRound(sv) {
    Bis zur ersten fertigen Runde eines Modus erklärt ein Hinweis jeden Schritt. */
 function coachOn(m) { const c = store.get("coach", {}); return !(c && c[m]); }
 function coachDone(m) { const c = store.get("coach", {}) || {}; c[m] = true; store.set("coach", c); }
-function coach(key) { return R && coachOn(R.mode) ? `<div class="coach" role="note">💡 ${esc(t("coach." + key))}</div>` : ""; }
+function coach(key) { return R && (R.practice || coachOn(R.mode)) ? `<div class="coach" role="note">💡 ${esc(t("coach." + key))}</div>` : ""; }
 
 /* ---------- Schriftgröße ---------- */
 const FONT_SCALES = [1, 1.12, 1.25];
@@ -223,7 +223,7 @@ function sw(label, on, act, disabled) {
 }
 function topbar(withAbort = true) {
   const m = R ? R.mode : mode();
-  return `<div class="topbar"><span class="tag">${MODE_ICON[m]} ${esc(t("mode." + m))}</span>${withAbort ? `<button type="button" class="x" data-act="abort">✕ ${esc(t("round.end"))}</button>` : ""}</div>`;
+  return `<div class="topbar"><span class="tag">${MODE_ICON[m]} ${esc(t("mode." + m))}${R && R.practice ? " · " + esc(t("practice.tag")) : ""}</span>${withAbort ? `<button type="button" class="x" data-act="abort">✕ ${esc(t("round.end"))}</button>` : ""}</div>`;
 }
 function backbar(title, act = "home") {
   return `<div class="topbar"><button type="button" class="x" data-act="${act}">‹ ${esc(t("back"))}</button><span class="tag">${esc(title)}</span></div>`;
@@ -403,12 +403,12 @@ function screenHome(keep) {
   const m = mode(), teamMode = usesTeams(m), n = players().length;
   const why = whyNot(m);
   const first = !store.get("seenRules", false);
-  show(`<div class="homebar">${langSwitch()}<button type="button" class="iconbtn" data-act="settings" aria-label="${esc(t("set.title"))}">⚙️</button></div>
+  show(`<div class="homebar">${langSwitch()}<span class="hbtns"><button type="button" class="iconbtn" data-act="help" aria-label="${esc(t("help.title"))}">❓</button><button type="button" class="iconbtn" data-act="settings" aria-label="${esc(t("set.title"))}">⚙️</button></span></div>
   <section class="hero"><img src="icon-192.png" alt="" width="76" height="76"><h1>SneakPlay</h1><p>${esc(t("home.tagline"))}</p>
     ${school() ? `<p class="badge">🏫 ${esc(t("school.active"))}</p>` : ""}</section>
   ${first ? `<section class="card"><p style="margin-top:0">${esc(t("home.welcome"))}</p>
-    <button type="button" class="btn primary wide" data-act="demo">▶ ${esc(t("home.demo"))}</button>
-    <button type="button" class="btn wide" style="margin-top:8px" data-act="rules">📖 ${esc(t("home.howto"))}</button></section>` : ""}
+    <button type="button" class="btn primary wide" data-act="practice" data-v="imposter">▶ ${esc(t("home.demo"))}</button>
+    <button type="button" class="btn wide" style="margin-top:8px" data-act="help">❓ ${esc(t("help.title"))}</button></section>` : ""}
   <section class="card"><h2>${esc(t("mode.title"))}</h2><div class="modes" role="radiogroup" aria-label="${esc(t("mode.title"))}">
     ${MODES.map(k => `<div class="moderow"><button type="button" class="mode" role="radio" aria-checked="${k === m}" data-act="mode" data-v="${k}"><span class="mi" aria-hidden="true">${MODE_ICON[k]}</span><span><b>${esc(t("mode." + k))} ${modeBadge(k)}</b><small>${esc(t("mode." + k + ".sub"))}</small></span></button><button type="button" class="qbtn" data-act="rulesFor" data-v="${k}" aria-label="${esc(t("mode.help", { mode: t("mode." + k) }))}">?</button></div>`).join("")}
   </div></section>
@@ -416,7 +416,7 @@ function screenHome(keep) {
   ${modeOptions(m, n)}
   <p class="err" id="why">${esc(why)}</p>
   <button type="button" class="btn primary big" data-act="start"${why ? " disabled" : ""}>${esc(t("home.start"))}</button>
-  <div class="linkrow"><button type="button" class="link" data-act="rules">📖 ${esc(t("home.rules"))}</button><button type="button" class="link" data-act="demo">▶ ${esc(t("home.demoShort"))}</button></div>
+  <div class="linkrow"><button type="button" class="link" data-act="help">❓ ${esc(t("help.link"))}</button><button type="button" class="link" data-act="practice" data-v="${m}">▶ ${esc(t("practice.for", { mode: t("mode." + m) }))}</button></div>
   ${scoreCard(teamMode)}
   <footer class="foot"><p>${esc(t("home.privacy"))}</p><p><a href="${legalUrl("datenschutz")}">${esc(t("legal.privacy"))}</a> · <a href="${legalUrl("impressum")}">${esc(t("legal.imprint"))}</a></p></footer>`,
   { name: "home", redraw: screenHome, keepScroll: keep });
@@ -459,18 +459,29 @@ function startRound() {
   if (whyNot(m)) { screenHome(true); return; }
   requirePro(m, () => beginRound(m));
 }
-function beginRound(m) {
+/* Proberunde: feste Beispiel-Inhalte, Tipps immer an, keine Punkte, keine Testrunde */
+function startPractice(m) {
+  if (!MODES.includes(m)) m = "imposter";
+  beginRound(m, true);
+}
+function practicePlayers(m) {
+  const P = players();
+  return P.length >= Math.max(3, MIN_PLAYERS[m]) ? P : range(4).map(i => t("players.default", { n: i + 1 }));
+}
+function beginRound(m, practice = false) {
   unlockAudio();
   keepAwake(true);
   store.set("seenRules", true);
-  const P = players(), n = P.length;
+  const P = practice ? practicePlayers(m) : players(), n = P.length;
   if (m === "imposter") {
-    const o = opts("imp", DEF_IMP), pool = imposterPool();
-    const r = pickFresh(pool, x => LANG + "|" + x.cat + "|" + x.word, store.get("used.imp", []));
-    store.set("used.imp", r.used);
+    const o = practice ? Object.assign({}, DEF_IMP, { imps: 1, clueless: false, hint: "cat", timer: 0, vote: "group" }) : opts("imp", DEF_IMP);
+    let pool = practice ? imposterPool(DEF_IMP.cats) : imposterPool();
+    if (pool.length < 2) pool = imposterPool(DEF_IMP.cats);
+    const r = practice ? { item: pool[0] } : pickFresh(pool, x => LANG + "|" + x.cat + "|" + x.word, store.get("used.imp", []));
+    if (!practice) store.set("used.imp", r.used);
     const roles = assignImposter(n, o);
     const alt = o.hint === "similar" ? similarFor(r.item, pool) : "";
-    R = { mode: m, P, lang: LANG, cat: r.item.name, icon: r.item.icon, word: r.item.word, alt, role: roles.role, starter: roles.starter,
+    R = { mode: m, practice, P, lang: LANG, cat: r.item.name, icon: r.item.icon, word: r.item.word, alt, role: roles.role, starter: roles.starter,
       hint: o.hint === "similar" && !alt ? "cat" : o.hint, timer: o.timer, vote: o.vote, step: 0, accused: null, votes: null, judged: {}, wordShown: false };
     /* Zahlen-Hochstapler: jede Person der Crew bekommt eine andere, gleichwertige Darstellung */
     if (r.item.equiv) {
@@ -480,21 +491,27 @@ function beginRound(m) {
       R.val = R.role.map(x => (x === "crew" ? reps[k++ % reps.length] : ""));
     }
   } else if (m === "missions") {
-    const o = opts("mis", DEF_MIS), C = missionContent();
-    const tp = pickFresh(C.topics, x => LANG + C.key + "|" + x, store.get("used.topics", []));
-    const ms = pickManyFresh(C.missions, x => LANG + C.key + "|" + x, store.get("used.missions", []), n);
-    store.set("used.topics", tp.used); store.set("used.missions", ms.used);
-    R = { mode: m, P, lang: LANG, topic: tp.item, ms: ms.items, none: rnd(n), timer: o.timer, vote: o.vote,
+    const o = practice ? { timer: 2, vote: "group" } : opts("mis", DEF_MIS), C = missionContent();
+    let tp, ms;
+    if (practice) { tp = { item: C.topics[0] }; ms = { items: range(n).map(i => C.missions[i % C.missions.length]) }; }
+    else {
+      tp = pickFresh(C.topics, x => LANG + C.key + "|" + x, store.get("used.topics", []));
+      ms = pickManyFresh(C.missions, x => LANG + C.key + "|" + x, store.get("used.missions", []), n);
+      store.set("used.topics", tp.used); store.set("used.missions", ms.used);
+    }
+    R = { mode: m, practice, P, lang: LANG, topic: tp.item, ms: ms.items, none: rnd(n), timer: o.timer, vote: o.vote,
       step: 0, accused: null, votes: null, open: {}, res: {} };
   } else if (m === "explain") {
-    const o = opts("exp", DEF_EXP), T = teams();
-    R = { mode: m, P: T, teamMode: true, lang: LANG, time: o.time, rounds: o.rounds, penalty: o.penalty, pool: explainPool(),
+    const o = practice ? { time: 45, rounds: 1, penalty: true } : opts("exp", DEF_EXP), T = teams();
+    R = { mode: m, practice, pi: 0, P: T, teamMode: true, lang: LANG, time: o.time, rounds: o.rounds, penalty: o.penalty,
+      pool: practice ? explainPool(["ex_everyday"]).slice(0, 12) : explainPool(),
       pts: T.map(() => 0), turn: 0, state: "ready", log: [], card: null, seenGame: new Set(), best: { pts: -99, team: -1 }, learn: [] };
     screenExplain();
     return;
   } else {
-    const o = opts("bomb", DEF_BOMB), teamMode = o.teams;
-    R = { mode: m, P: teamMode ? teams() : P, teamMode, lang: LANG, len: o.len, pool: bombPool(), prompt: "", state: "ready", loser: null };
+    const o = practice ? { len: "short", teams: false } : opts("bomb", DEF_BOMB), teamMode = o.teams;
+    R = { mode: m, practice, pi: 0, P: teamMode ? teams() : P, teamMode, lang: LANG, len: o.len,
+      pool: practice ? bombPrompts(LANG).slice(0, 5) : bombPool(), prompt: "", state: "ready", loser: null };
     R.prompt = nextBombPrompt();
     screenBomb();
     return;
@@ -740,14 +757,24 @@ function finishRound() {
   if (R.mode === "imposter") r = scoreImposter({ role: R.role, accused: R.accused, judged: R.judged, votes: R.votes });
   else if (R.mode === "missions") r = scoreMissions({ n: R.P.length, none: R.none, accused: R.accused, res: R.res, votes: R.votes });
   else r = scoreBomb(R.P.length, R.loser);
-  const key = R.teamMode ? "teamScores" : "scores", S = scores(key);
-  R.P.forEach((p, i) => { if (r.delta[i]) S[p] = (S[p] || 0) + r.delta[i]; });
-  store.set(key, S);
+  if (!R.practice) {
+    const key = R.teamMode ? "teamScores" : "scores", S = scores(key);
+    R.P.forEach((p, i) => { if (r.delta[i]) S[p] = (S[p] || 0) + r.delta[i]; });
+    store.set(key, S);
+  }
   R.result = r;
   store.remove("resume");
   sfx("fanfare");
   screenAwards();
   coachDone(R.mode);
+}
+function practiceEnd() {
+  return `<p class="notice">🎓 ${esc(t("practice.done"))}</p>`;
+}
+function practiceButtons() {
+  return `<button type="button" class="btn primary big" data-act="playReal" data-v="${R.mode}">${esc(t("practice.real"))}</button>
+    <button type="button" class="btn wide" data-act="practice" data-v="${R.mode}">↺ ${esc(t("practice.again"))}</button>
+    <button type="button" class="btn wide" data-act="home">${esc(t("aw.home"))}</button>`;
 }
 function awardRows(r) {
   return r.awards.map((a, k) => `<div class="award" style="animation-delay:${k * 90}ms"><div class="e" aria-hidden="true">${a.icon}</div><div><b>${esc(t("aw." + a.key))}</b>
@@ -758,13 +785,13 @@ function scoreTable(rows) {
     `<tr><td>${k === 0 && s > 0 ? "👑 " : ""}${esc(p)}${d ? `<span class="d">${d > 0 ? "+" : ""}${d}</span>` : ""}</td><td class="r">${s}</td></tr>`).join("")}</table>`;
 }
 function screenAwards(keep) {
-  const r = R.result, S = scores(R.teamMode ? "teamScores" : "scores");
+  const r = R.result, S = R.practice ? Object.fromEntries(R.P.map((p, i) => [p, r.delta[i] || 0])) : scores(R.teamMode ? "teamScores" : "scores");
   const rows = R.P.map((p, i) => [p, S[p] || 0, r.delta[i] || 0]).sort((x, y) => y[1] - x[1]);
   show(`<div class="center pop"><div class="e-big">🏆</div><div class="big-h">${esc(t("aw.title"))}</div></div>
-    ${coach("awards")}
+    ${R.practice ? practiceEnd() : coach("awards")}
     ${awardRows(r)}
     <div class="card" style="margin-top:16px"><h2>${esc(t(R.teamMode ? "score.teams" : "score.title"))}</h2>${scoreTable(rows)}</div>
-    <button type="button" class="btn primary big" data-act="again">${esc(t("aw.again"))}</button>
+    ${R.practice ? practiceButtons() : `<button type="button" class="btn primary big" data-act="again">${esc(t("aw.again"))}</button>`}
     <button type="button" class="btn wide" data-act="home">${esc(t("aw.home"))}</button>`,
   { name: "awards", keepScroll: keep });
 }
@@ -775,6 +802,7 @@ function screenAwards(keep) {
 function exTeam() { return R.turn % R.P.length; }
 function exRoundNo() { return Math.floor(R.turn / R.P.length) + 1; }
 function exNextCard() {
+  if (R.practice) { R.card = R.pool[R.pi++ % R.pool.length]; return; }
   let pool = R.pool.filter(c => !R.seenGame.has(c.deck + "|" + c.w));
   if (!pool.length) { R.seenGame.clear(); pool = R.pool; }
   const r = pickFresh(pool, c => LANG + "|" + c.deck + "|" + c.w, store.get("used.explain", []));
@@ -835,13 +863,14 @@ function screenExplain(keep) {
   show(`<div class="center pop"><div class="e-big">🏆</div><div class="big-h">${esc(t(winners.length > 1 ? "ex.tie" : "ex.winner", { team: winners.map(i => R.P[i]).join(" & ") }))}</div></div>
     ${R.best.pts > 0 ? `<div class="award"><div class="e" aria-hidden="true">🔥</div><div><b>${esc(t("aw.exBest"))}</b><span class="n">${esc(R.P[R.best.team])}</span><small>${esc(t("aw.exBest.text", { n: R.best.pts }))}</small></div></div>` : ""}
     <div class="card" style="margin-top:16px"><h2>${esc(t("score.match"))}</h2>${scoreTable(rows)}</div>
-    ${R.learn.length ? `<div class="card"><h2>📚 ${esc(t("learn.title"))} <span class="pill">${R.learn.length}</span></h2>
+    ${R.practice ? practiceEnd() : ""}
+    ${R.learn.length && !R.practice ? `<div class="card"><h2>📚 ${esc(t("learn.title"))} <span class="pill">${R.learn.length}</span></h2>
       <p class="muted small" style="margin-top:0">${esc(t("learn.hint"))}</p>
       <div class="chips">${R.learn.map(c => `<span class="chip static">${esc(c.w)}</span>`).join("")}</div>
       ${R.learnSaved ? `<p class="small" style="margin-bottom:0">✓ ${esc(t("learn.saved", { name: R.learnSaved }))}</p>`
         : `<button type="button" class="btn wide" style="margin-top:12px" data-act="learnSave">💾 ${esc(t("learn.save"))}</button>`}</div>` : ""}
-    <button type="button" class="btn primary big" data-act="again">${esc(t("ex.newGame"))}</button>
-    <button type="button" class="btn wide" data-act="home">${esc(t("aw.home"))}</button>`,
+    ${R.practice ? practiceButtons() : `<button type="button" class="btn primary big" data-act="again">${esc(t("ex.newGame"))}</button>
+    <button type="button" class="btn wide" data-act="home">${esc(t("aw.home"))}</button>`}`,
   { name: "explainEnd" });
 }
 function exStart() {
@@ -887,9 +916,11 @@ function exConfirm() {
     R.state = "done";
     store.remove("resume");
     coachDone("explain");
-    const S = scores("teamScores");
-    R.P.forEach((p, i) => { S[p] = (S[p] || 0) + R.pts[i]; });
-    store.set("teamScores", S);
+    if (!R.practice) {
+      const S = scores("teamScores");
+      R.P.forEach((p, i) => { S[p] = (S[p] || 0) + R.pts[i]; });
+      store.set("teamScores", S);
+    }
     sfx("fanfare");
   } else R.state = "ready";
   screenExplain();
@@ -899,6 +930,7 @@ function exConfirm() {
    Wort-Bombe
    ===================================================================== */
 function nextBombPrompt() {
+  if (R.practice) return R.pool[R.pi++ % R.pool.length];
   const r = pickFresh(R.pool, x => LANG + "|" + x, store.get("used.bomb", []));
   store.set("used.bomb", r.used);
   return r.item;
@@ -968,28 +1000,39 @@ function bombExplode() {
 /* =====================================================================
    Spielregeln
    ===================================================================== */
-function screenRules(only) {
+function screenRules(only, back = "home") {
   store.set("seenRules", true);
   const one = MODES.includes(only) ? only : null;
   const sec = k => `<section class="card rules"><h2>${MODE_ICON[k]} ${esc(t("mode." + k))}</h2><ol>${t("rules." + k).split("\n").map(x => `<li>${esc(x)}</li>`).join("")}</ol>
     <p class="score-note">${esc(t("rules." + k + ".score"))}</p></section>`;
   const hold = `<section class="card rules"><h2>👆 ${esc(t("rules.hold.title"))}</h2><p style="margin:0">${esc(t("rules.hold"))}</p></section>`;
   if (one) {
-    show(`${backbar(t("mode." + one))}${sec(one)}${hold}
-    ${one === "imposter" ? `<button type="button" class="btn wide" data-act="demo">▶ ${esc(t("home.demo"))}</button>` : ""}
-    <button type="button" class="link" data-act="rules">📖 ${esc(t("rules.all"))}</button>
-    <button type="button" class="btn primary big" data-act="home">${esc(t("back"))}</button>`, { name: "rules", redraw: () => screenRules(one) });
+    show(`${backbar(t("mode." + one), back)}${sec(one)}
+    <button type="button" class="btn primary big" data-act="practice" data-v="${one}">▶ ${esc(t("practice.for", { mode: t("mode." + one) }))}</button>
+    <p class="muted small center">${esc(t("practice.hint"))}</p>
+    <section class="card rules"><h2>⚙️ ${esc(t("help.opts.title"))}</h2><p style="margin:0">${esc(t("help.opts." + one))}</p></section>
+    ${hold}
+    <button type="button" class="btn wide" data-act="help">❓ ${esc(t("help.title"))}</button>`, { name: "rules", back, redraw: () => screenRules(one, back) });
     return;
   }
-  show(`${backbar(t("home.rules"))}${MODES.map(sec).join("")}${hold}
+  show(`${backbar(t("home.rules"), back)}${MODES.map(sec).join("")}${hold}
     <section class="card rules"><h2>🏫 ${esc(t("rules.school.title"))}</h2><p style="margin:0">${esc(t("rules.school"))}</p></section>
-    <button type="button" class="btn wide" data-act="demo">▶ ${esc(t("home.demo"))}</button>
-    <button type="button" class="btn primary big" data-act="home">${esc(t("back"))}</button>`, { name: "rules", redraw: () => screenRules() });
+    <button type="button" class="btn primary big" data-act="${back}">${esc(t("back"))}</button>`, { name: "rules", back, redraw: () => screenRules(null, back) });
 }
-
-/* =====================================================================
-   Eigene Karten: Liste, Editor, Teilen, Empfangen
-   ===================================================================== */
+/* Hilfe: alle Spiele mit Regeln und Proberunde, Hinweise zu den Einstellungen */
+function screenHelp(keep) {
+  show(`${backbar(t("help.title"))}
+    <p class="muted" style="margin-top:4px">${esc(t("help.intro"))}</p>
+    ${MODES.map(k => `<section class="card"><h2>${MODE_ICON[k]} ${esc(t("mode." + k))} ${modeBadge(k)}</h2><p class="muted small" style="margin-top:0">${esc(t("mode." + k + ".sub"))}</p>
+      <div class="btnrow"><button type="button" class="btn" data-act="helpRules" data-v="${k}">📖 ${esc(t("help.rules"))}</button><button type="button" class="btn primary" data-act="practice" data-v="${k}">▶ ${esc(t("practice.short"))}</button></div></section>`).join("")}
+    <section class="card rules"><h2>⚙️ ${esc(t("help.set.title"))}</h2>
+      <p style="margin-top:0">${esc(t("help.set.home"))}</p><p>${esc(t("help.set.gear"))}</p>
+      <button type="button" class="btn wide" data-act="settings">⚙️ ${esc(t("help.set.open"))}</button></section>
+    <section class="card rules"><h2>👆 ${esc(t("rules.hold.title"))}</h2><p style="margin:0">${esc(t("rules.hold"))}</p></section>
+    <section class="card rules"><h2>🏫 ${esc(t("rules.school.title"))}</h2><p style="margin:0">${esc(t("rules.school"))}</p></section>
+    <button type="button" class="link" data-act="helpAll">📖 ${esc(t("rules.all"))}</button>
+    <button type="button" class="btn primary big" data-act="home">${esc(t("back"))}</button>`, { name: "help", redraw: screenHelp, keepScroll: keep });
+}
 function screenLists() {
   const L = lists();
   show(`${backbar(t("lists.title"))}
@@ -1360,6 +1403,11 @@ const ACT = {
   settings: () => screenSettings(),
   rules: () => screenRules(),
   rulesFor: v => screenRules(v),
+  help: () => screenHelp(),
+  helpRules: v => screenRules(v, "help"),
+  helpAll: () => screenRules(null, "help"),
+  practice: v => startPractice(v),
+  playReal: v => { if (MODES.includes(v)) store.set("mode", v); R = null; startRound(); },
   home: () => goHome(),
   quick: () => { store.set("players", range(4).map(i => t("players.default", { n: i + 1 }))); screenHome(true); },
   rename: v => renameIn("players", players(), +v, "scores"),
@@ -1394,12 +1442,6 @@ const ACT = {
   vibrate: () => { if (toggleStore("vibrate", true)) vibrate(40); screenSettings(true); },
   awake: () => { toggleStore("awake", true); screenSettings(true); },
   schoolOn: () => schoolOn(),
-  demo: () => {
-    if (players().length < 3) store.set("players", range(4).map(i => t("players.default", { n: i + 1 })));
-    store.set("mode", "imposter");
-    const c = store.get("coach", {}) || {}; delete c.imposter; store.set("coach", c);
-    startRound();
-  },
   coachReset: () => { store.remove("coach"); toast(t("coach.reset.done")); },
   fontScale: v => { store.set("fontScale", +v); applyFontScale(); screenSettings(true); },
   paywall: () => screenPaywall(null),
@@ -1486,6 +1528,7 @@ function onBackButton(e) {
   if (!dlgEl.hidden) { closeDialog(); return; }
   if (current.round) { abortRound(); return; }
   if (current.back === "lists") { screenLists(); return; }
+  if (current.back === "help") { screenHelp(); return; }
   if (current.name !== "home") { goHome(); return; }
   const now = Date.now();
   if (now - backArmed < 2000) {

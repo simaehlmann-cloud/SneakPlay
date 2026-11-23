@@ -477,19 +477,32 @@ const ok = (c, m) => { if (c) console.log("✓ " + m); else { fehler++; console.
   await act("settings");
   await noOverflow("Einstellungen 320 px");
   await page.evaluate(() => goHome());
-  await page.click('.link[data-act="rules"]');
+  await page.evaluate(() => screenRules());
   await noOverflow("Regeln 320 px");
   await page.evaluate(() => goHome());
   for (const k of ["imposter", "missions", "explain", "bomb"]) {
     await page.click(`.qbtn[data-v="${k}"]`);
-    ok(await page.evaluate(() => document.querySelectorAll("section.rules").length === 2), `„?“ zeigt nur die Regeln von ${k}`);
+    ok(await page.evaluate(k => document.querySelectorAll("section.rules").length === 3 && !!document.querySelector(`[data-act="practice"][data-v="${k}"]`), k), `„?“ zeigt Regeln, Einstellungen und Proberunde von ${k}`);
     await noOverflow(`Regeln ${k} 320 px`);
     await page.evaluate(() => goHome());
   }
-  ok(await page.isVisible('.linkrow [data-act="demo"]'), "Proberunde immer auf der Startseite");
-  await page.click('.linkrow [data-act="demo"]');
-  ok(await page.evaluate(() => current.name === "pass" && R.mode === "imposter" && !!document.querySelector(".coach")), "Proberunde startet Hochstapler mit Tipps");
-  await page.evaluate(() => goHome());
+  ok(await page.isVisible('.linkrow [data-act="practice"]') && await page.isVisible('.homebar [data-act="help"]'), "Proberunde und Hilfe immer auf der Startseite");
+  await page.click('.homebar [data-act="help"]');
+  ok(await page.evaluate(() => current.name === "help" && document.querySelectorAll('[data-act="practice"]').length === 4 && document.querySelectorAll('[data-act="helpRules"]').length === 4), "Hilfe: alle 4 Spiele mit Regeln und Proberunde");
+  await noOverflow("Hilfe 320 px");
+  await page.click('[data-act="helpRules"][data-v="bomb"]');
+  await page.evaluate(() => onBackButton());
+  ok(await page.evaluate(() => current.name === "help"), "Zurück aus den Regeln führt in die Hilfe");
+  for (const k of ["imposter", "missions", "explain", "bomb"]) {
+    await page.evaluate(() => screenHelp());
+    await page.click(`[data-act="practice"][data-v="${k}"]`);
+    ok(await page.evaluate(k => R && R.practice && R.mode === k && !!document.querySelector(".coach") && /Proberunde/.test(document.querySelector(".topbar .tag").textContent), k), `Proberunde ${k} startet mit Tipps`);
+    await noOverflow(`Proberunde ${k} 320 px`);
+    await page.evaluate(() => abortRound());
+    await page.waitForTimeout(30);
+    if (await page.isVisible(".dlg .btn.danger")) await page.click(".dlg .btn.danger");
+    await page.evaluate(() => goHome());
+  }
 
   /* ---------- Alles löschen ---------- */
   await page.evaluate(() => goHome());
@@ -514,8 +527,9 @@ const ok = (c, m) => { if (c) console.log("✓ " + m); else { fehler++; console.
     await page.goto(APP);
     await page.evaluate(() => { localStorage.clear(); localStorage.setItem("sneakplay.pro", "true"); localStorage.setItem("sneakplay.lang", JSON.stringify("de")); });
     await page.goto(APP);
-    await act("demo");
+    await act("practice", "imposter");
     ok(await page.isVisible(".coach") && (await page.evaluate(() => R.P.length)) === 4, "Probe-Runde startet mit Tipps und 4 Spielern");
+    ok(await page.evaluate(() => players().length === 0), "Probe-Runde legt keine Spieler an");
     await revealAll(2);
     /* App wird beendet und neu gestartet */
     await page.goto(APP);
@@ -528,9 +542,14 @@ const ok = (c, m) => { if (c) console.log("✓ " + m); else { fehler++; console.
     await act("accuse", ix); await act("reveal"); await act("showWord");
     await act("judge", `${ix}:0`);
     await act("finish");
-    ok(await page.isVisible("text=Ab jetzt laufen die Runden ohne diese Hinweise"), "Letzter Tipp bei den Auszeichnungen");
-    await act("again");
-    ok(!(await page.$(".coach")), "Zweite Runde ohne Tipps");
+    ok(await page.isVisible("text=Proberunde geschafft") && await page.isVisible('[data-act="practice"][data-v="imposter"]'), "Ende der Probe-Runde mit Wiederholen");
+    ok(await page.evaluate(() => Object.keys(scores()).length === 0), "Probe-Runde zählt nicht für den Punktestand");
+    await act("playReal", "imposter");
+    ok(await page.evaluate(() => current.name === "home"), "Ohne Spieler führt „Richtig spielen“ zur Startseite");
+    await act("quick"); await act("start");
+    ok(!(await page.$(".coach")), "Echte Runde nach der Probe ohne Tipps");
+    await page.evaluate(() => abortRound()); await page.waitForTimeout(30);
+    if (await page.isVisible(".dlg .btn.danger")) await page.click(".dlg .btn.danger");
     await page.evaluate(() => goHome());
     ok(!(await page.evaluate(() => localStorage.getItem("sneakplay.resume"))), "Nach dem Beenden nichts mehr zum Fortsetzen");
     /* Erklär-Modus: unterbrochener Durchgang → Ergebnisse prüfen */
@@ -600,6 +619,10 @@ const ok = (c, m) => { if (c) console.log("✓ " + m); else { fehler++; console.
     await page.evaluate(() => goHome());
     await act("mode", "bomb");
     ok(/2 Tests/.test(await text('.mode[data-v="bomb"] .mbadge')), "Testrunden je Modus getrennt");
+    await page.evaluate(() => startPractice("bomb"));
+    ok(await page.evaluate(() => R && R.practice && current.name === "bomb"), "Proberunde ohne Vollversion startet direkt");
+    await page.evaluate(() => goHome());
+    ok(/2 Tests/.test(await text('.mode[data-v="bomb"] .mbadge')), "Proberunde verbraucht keine Testrunde");
     /* Schulmodus: keine Kaufknöpfe */
     await page.evaluate(() => { localStorage.setItem("sneakplay.school", "true"); localStorage.setItem("sneakplay.schoolPin", JSON.stringify("1234")); });
     await act("mode", "explain");

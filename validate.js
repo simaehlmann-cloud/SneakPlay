@@ -166,7 +166,7 @@ for (const m of app.matchAll(/t\([^()]*\?\s*"([\w.]+)"\s*:\s*"([\w.]+)"/g)) { us
 used.add("why.level");
 for (const m of app.matchAll(/coach\((?:[^()]*\?\s*)?"(\w+)"(?:\s*:\s*"(\w+)")?\)/g)) { used.add("coach." + m[1]); if (m[2]) used.add("coach." + m[2]); }
 G.MODES.filter(m => !G.FREE_MODES.includes(m)).forEach(m => used.add("pro.what." + m));
-G.MODES.forEach(m => { used.add("mode." + m); used.add("mode." + m + ".sub"); used.add("rules." + m); used.add("rules." + m + ".score"); });
+G.MODES.forEach(m => { used.add("mode." + m); used.add("mode." + m + ".sub"); used.add("rules." + m); used.add("rules." + m + ".score"); used.add("help.opts." + m); });
 used.add("timer.startTalk");
 const awardKeys = [...R("www/js/game.js").matchAll(/key: "(\w+)"/g)].map(m => m[1]);
 awardKeys.forEach(k => { used.add("aw." + k); used.add("aw." + k + ".text"); });
@@ -403,7 +403,7 @@ info("Eigene Karten, Text- und QR-Austausch, ähnlicher Begriff, Erklär-Wertung
 {
   /* Grobe Prüfung: ${…} in HTML-Vorlagen muss esc(), names(), eine Zahl,
      ein Symbol oder ein bekannter Baustein sein. */
-  const SAFE = /^(esc\(|coach\(|canAct|modeBadge|L\.map|target\b|isPro\(\)|pro \?|paid\.map|platformId\(\)|sch \?|x\.res|sample\b|set\.cards\.length|mathOn|school\(\)|T\.|teamMode|extraHtml|max\b|TEAM_COLORS|on\b|deckIcon|general\.map|withSchoolMath|customChips|chip\(|dot\(|levelSeg|playersCard|teamsCard|exScoreboard|awardRows|scoreTable|c\.icon|c\.f|pts|tm\b|sch\b|!!on|disabled|withAbort|MODES\.|fmtTime|b\.|l\b|String\(|act\b|disabledFn|options\.|buttons\.|\[\[|names\(|t\("|i \+ 1|n\b|k \* 90|MODE_ICON|CAT_ICON|R\.icon|a\.icon|i\b|g\b|k\b|s\b|d\b|MAX_|MIN_|LANG|legalUrl|topbar|backbar|langSwitch|seg\(|sw\(|timerCard|modeOptions|catChips|scoreCard|countsLine|head|body|sec|hold\b|one === |first|why|rate|share|l\.words\.length|R\.counts|c\b|v\b|f\b|id\b|o\.|dark|light|i === |k === |R\.|guessers|holders|n \?|st ===|parts|rows|r\.awards|order|L\.length|P\.map|builtIn|a\.who|imps|clue|topic|ready|\(|"|')/;
+  const SAFE = /^(esc\(|coach\(|canAct|modeBadge|L\.map|target\b|isPro\(\)|pro \?|paid\.map|platformId\(\)|sch \?|x\.res|sample\b|set\.cards\.length|mathOn|school\(\)|T\.|teamMode|extraHtml|max\b|TEAM_COLORS|on\b|deckIcon|general\.map|withSchoolMath|customChips|chip\(|dot\(|levelSeg|playersCard|teamsCard|exScoreboard|awardRows|scoreTable|c\.icon|c\.f|pts|tm\b|sch\b|!!on|disabled|withAbort|MODES\.|fmtTime|b\.|l\b|String\(|act\b|disabledFn|options\.|buttons\.|\[\[|names\(|t\("|i \+ 1|n\b|k \* 90|MODE_ICON|CAT_ICON|R\.icon|a\.icon|i\b|g\b|k\b|s\b|d\b|MAX_|MIN_|LANG|legalUrl|topbar|backbar|langSwitch|seg\(|sw\(|timerCard|modeOptions|catChips|scoreCard|countsLine|head|body|sec|hold\b|one\b|m\b|one === |back\b|R && R.practice|R.practice|first|why|rate|share|l\.words\.length|R\.counts|c\b|v\b|f\b|id\b|o\.|dark|light|i === |k === |R\.|guessers|holders|n \?|st ===|parts|rows|r\.awards|order|L\.length|P\.map|builtIn|a\.who|imps|clue|topic|ready|\(|"|')/;
   const bad = [];
   for (const m of app.matchAll(/\$\{([^}]{0,60})/g)) if (!SAFE.test(m[1].trim())) bad.push(m[1].trim());
   ok(bad.length === 0, "Vorlagen ohne esc(): " + bad.slice(0, 8).join(" | "));

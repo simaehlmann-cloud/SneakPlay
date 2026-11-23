@@ -163,6 +163,7 @@ function levelOk(lv, max) { return (lv || 1) <= (max || 3); }
 /* Begriff für den Hochstapler in der Variante „Ähnlicher Begriff“:
    der hinterlegte verwandte Begriff, sonst ein anderer aus derselben Kategorie */
 function similarFor(item, pool) {
+  if (item.near && item.near.length) return pick(item.near);      // Zahlen-Hochstapler
   if (item.s && item.s.toLowerCase() !== item.word.toLowerCase()) return item.s;
   const same = pool.filter(x => x.cat === item.cat && x.word.toLowerCase() !== item.word.toLowerCase());
   return same.length ? pick(same).word : "";

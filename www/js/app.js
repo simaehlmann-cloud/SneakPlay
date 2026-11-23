@@ -184,6 +184,7 @@ function levelSeg() {
 function deckName(id) {
   if (id.startsWith("u:")) { const l = lists().find(x => "u:" + x.id === id); return l ? l.name : ""; }
   if (DECKS[LANG][id]) return DECKS[LANG][id].name;
+  if (EQUIV[LANG][id]) return EQUIV[LANG][id].name;
   return CONTENT[LANG].cats[id] ? CONTENT[LANG].cats[id].name : "";
 }
 function deckIcon(id) { return id.startsWith("u:") ? "✏️" : (DECK_ICON[id] || CAT_ICON[id] || "•"); }
@@ -194,6 +195,9 @@ function imposterPool(cats) {
     if (id.startsWith("u:")) {
       const l = L.find(x => "u:" + x.id === id);
       if (l) l.cards.forEach(c => pool.push({ cat: id, name: l.name, icon: "✏️", word: c.w, s: "" }));
+    } else if (EQUIV[LANG][id]) {
+      const d = EQUIV[LANG][id];
+      d.groups.filter(g => levelOk(g.lv, lv)).forEach(g => pool.push({ cat: id, name: d.name, icon: DECK_ICON[id], word: g.reps[0], reps: g.reps, near: g.near, equiv: true }));
     } else if (DECKS[LANG][id]) {
       const d = DECKS[LANG][id];
       d.cards.filter(c => levelOk(c.lv, lv)).forEach(c => pool.push({ cat: id, name: d.name, icon: DECK_ICON[id], word: c.w, s: c.s }));
@@ -232,7 +236,7 @@ function missionContent() {
 function whyNot(m) {
   if (usesTeams(m)) { if (teams().length < MIN_TEAMS) return t("why.teams"); }
   else if (players().length < MIN_PLAYERS[m]) return t("why.players", { n: MIN_PLAYERS[m] });
-  if (m === "imposter" && imposterPool().length < 2) return t("why.cats");
+  if (m === "imposter" && imposterPool().length < 2) return t(opts("imp", DEF_IMP).cats.length ? "why.level" : "why.cats");
   if (m === "explain" && explainPool().length < 5) return t("why.decks");
   if (m === "bomb" && bombPool().length < 1) return t("why.cats");
   return "";
@@ -247,7 +251,7 @@ function customChips(sel, act, needForbidden) {
   }).join("") + `<button type="button" class="chip new" data-act="lists">＋ ${esc(t("lists.manage"))}</button>`;
 }
 function catSections(sel, act, general, withSchoolMath) {
-  const mathOn = sel.some(id => DECK_MATH.includes(id));
+  const mathOn = sel.some(id => DECK_MATH.includes(id) || EQUIV_DECKS.includes(id));
   return `<section class="card"><h2>${esc(t("cats.title"))}</h2>
     <div class="grp">${esc(t("cats.general"))}</div><div class="chips">${general.map(id => chip(id, sel.includes(id), act, deckName(id))).join("")}</div>
     ${withSchoolMath ? `<div class="grp">${esc(t("cats.math"))}</div><div class="chips">${(withSchoolMath === true ? DECK_MATH : withSchoolMath).map(id => chip(id, sel.includes(id), act, deckName(id))).join("")}</div>` : ""}
@@ -258,7 +262,7 @@ function catSections(sel, act, general, withSchoolMath) {
 function modeOptions(m, n) {
   if (m === "imposter") {
     const o = opts("imp", DEF_IMP);
-    return catSections(o.cats, "cat", CAT_ORDER.concat("ex_school"), true) + `
+    return catSections(o.cats, "cat", CAT_ORDER.concat("ex_school"), DECK_MATH.concat(EQUIV_DECKS)) + `
     <section class="card"><h2>${esc(t("opts.title"))}</h2>
       <div class="opt col"><div class="lbl"><b>${esc(t("opt.hint"))}</b><small>${esc(t("opt.hint." + o.hint))}</small></div>
         ${seg(t("opt.hint"), [["cat", t("opt.hint.cat.s")], ["similar", t("opt.hint.similar.s")], ["none", t("opt.hint.none.s")]], o.hint, "hint")}</div>
@@ -347,7 +351,7 @@ function screenHome(keep) {
     ${school() ? `<p class="badge">🏫 ${esc(t("school.active"))}</p>` : ""}</section>
   ${first ? `<section class="card"><p style="margin-top:0">${esc(t("home.welcome"))}</p><button type="button" class="btn wide" data-act="rules">📖 ${esc(t("home.howto"))}</button></section>` : ""}
   <section class="card"><h2>${esc(t("mode.title"))}</h2><div class="modes" role="radiogroup" aria-label="${esc(t("mode.title"))}">
-    ${MODES.map(k => `<button type="button" class="mode" role="radio" aria-checked="${k === m}" data-act="mode" data-v="${k}"><span class="mi" aria-hidden="true">${MODE_ICON[k]}</span><span><b>${esc(t("mode." + k))}</b><small>${esc(t("mode." + k + ".sub"))}</small></span></button>`).join("")}
+    ${MODES.map(k => `<button type="button" class="mode" role="radio" aria-checked="${k === m}" data-act="mode" data-v="${k}"><span class="mi" aria-hidden="true">${MODE_ICON[k]}</span><span><b>${esc(t("mode." + k))} ${modeBadge(k)}</b><small>${esc(t("mode." + k + ".sub"))}</small></span></button>`).join("")}
   </div></section>
   ${teamMode ? teamsCard() : playersCard()}
   ${modeOptions(m, n)}
@@ -394,6 +398,9 @@ function renameIn(key, list, i, scoreKey) {
 function startRound() {
   const m = mode();
   if (whyNot(m)) { screenHome(true); return; }
+  requirePro(m, () => beginRound(m));
+}
+function beginRound(m) {
   unlockAudio();
   keepAwake(true);
   store.set("seenRules", true);
@@ -406,6 +413,13 @@ function startRound() {
     const alt = o.hint === "similar" ? similarFor(r.item, pool) : "";
     R = { mode: m, P, lang: LANG, cat: r.item.name, icon: r.item.icon, word: r.item.word, alt, role: roles.role, starter: roles.starter,
       hint: o.hint === "similar" && !alt ? "cat" : o.hint, timer: o.timer, vote: o.vote, step: 0, accused: null, votes: null, judged: {}, wordShown: false };
+    /* Zahlen-Hochstapler: jede Person der Crew bekommt eine andere, gleichwertige Darstellung */
+    if (r.item.equiv) {
+      const reps = shuffle(r.item.reps);
+      let k = 0;
+      R.equiv = true; R.reps = r.item.reps;
+      R.val = R.role.map(x => (x === "crew" ? reps[k++ % reps.length] : ""));
+    }
   } else if (m === "missions") {
     const o = opts("mis", DEF_MIS), C = missionContent();
     const tp = pickFresh(C.topics, x => LANG + C.key + "|" + x, store.get("used.topics", []));
@@ -416,7 +430,7 @@ function startRound() {
   } else if (m === "explain") {
     const o = opts("exp", DEF_EXP), T = teams();
     R = { mode: m, P: T, teamMode: true, lang: LANG, time: o.time, rounds: o.rounds, penalty: o.penalty, pool: explainPool(),
-      pts: T.map(() => 0), turn: 0, state: "ready", log: [], card: null, seenGame: new Set(), best: { pts: -99, team: -1 }, turns: [] };
+      pts: T.map(() => 0), turn: 0, state: "ready", log: [], card: null, seenGame: new Set(), best: { pts: -99, team: -1 }, learn: [] };
     screenExplain();
     return;
   } else {
@@ -436,7 +450,9 @@ function secretHTML(i) {
   if (R.mode === "imposter") {
     const r = R.role[i];
     const imps = R.role.filter(x => x === "imp").length;
-    const wordCard = w => `<div class="k">${esc(t("card.word"))}</div><div class="w">${esc(w)}</div><small class="muted">${R.icon} ${esc(R.cat)}</small>`;
+    const wordCard = w => R.equiv
+      ? `<div class="k">${esc(t("card.value"))}</div><div class="w num">${esc(w)}</div><small class="muted">${esc(t("card.value.hint"))}</small>`
+      : `<div class="k">${esc(t("card.word"))}</div><div class="w">${esc(w)}</div><small class="muted">${R.icon} ${esc(R.cat)}</small>`;
     /* Variante „Ähnlicher Begriff“: Die Karte sieht aus wie bei allen anderen */
     if (r === "imp" && R.hint === "similar") return wordCard(R.alt);
     if (r === "imp") return `<div class="k">${esc(t("card.role"))}</div><div class="w imp">${esc(t("card.imposter"))}</div>
@@ -444,7 +460,7 @@ function secretHTML(i) {
       <small class="muted">${esc(t(R.hint === "cat" ? "card.imposter.text" : "card.imposter.textNoHint"))}${imps > 1 ? "<br>" + esc(t("card.imposter.two")) : ""}</small>`;
     if (r === "clue") return `<div class="k">${esc(t("card.role"))}</div><div class="w clue">${esc(t("card.clueless"))}</div>
       <small class="muted">${esc(t("card.clueless.text"))}</small>`;
-    return wordCard(R.word);
+    return wordCard(R.equiv ? R.val[i] : R.word);
   }
   const topic = `<div class="k">${esc(t("card.topic"))}</div><div class="m">${esc(R.topic)}</div>`;
   if (i === R.none) return topic + `<div class="k" style="margin-top:14px">${esc(t("card.mission"))}</div><div class="w imp">${esc(t("card.none"))}</div><small class="muted">${esc(t("card.none.text"))}</small>`;
@@ -521,7 +537,7 @@ function screenPlay() {
   if (R.mode === "imposter") {
     const n = R.P.length, s = R.starter, order = range(n).map(k => R.P[(s + k) % n]);
     show(`${topbar()}<div class="card center pop"><div class="step">${esc(t("play.imp.step"))}</div><div class="big-h">${esc(t("play.imp.starts", { name: R.P[s] }))}</div>
-      <p>${esc(t("play.imp.text"))}</p><div class="order">${order.map(p => `<span>${esc(p)}</span>`).join("")}</div></div>
+      <p>${esc(t(R.equiv ? "play.imp.textEquiv" : "play.imp.text"))}</p><div class="order">${order.map(p => `<span>${esc(p)}</span>`).join("")}</div></div>
       ${R.timer ? timerCard(R.timer, "timer.startTalk") : ""}
       <div class="card"><p class="muted" style="margin:0">💡 ${esc(t(R.hint === "similar" ? "play.imp.tipSimilar" : "play.imp.tip"))}</p></div>
       <button type="button" class="btn primary big" data-act="tovote">${esc(t("play.toVote"))}</button>`, { name: "play", round: true });
@@ -608,7 +624,7 @@ function resolveImp(keep) {
       <button type="button" class="btn primary big" data-act="showWord">${esc(t("res.showWord"))}</button>`;
   } else {
     const ready = guessers.every(g => R.judged[g] != null);
-    body = `<div class="card center pop"><div class="step">${esc(t("res.wordWas"))}</div><div class="reveal-word">${esc(R.word)}</div><p class="muted" style="margin-top:0">${R.icon} ${esc(R.cat)}</p>
+    body = `<div class="card center pop"><div class="step">${esc(t(R.equiv ? "res.valueWas" : "res.wordWas"))}</div><div class="reveal-word">${esc(R.equiv ? R.reps.join(" = ") : R.word)}</div><p class="muted" style="margin-top:0">${R.icon} ${esc(R.cat)}</p>
       ${R.hint === "similar" ? `<p class="muted">${esc(t("res.altWas", { word: R.alt }))}</p>` : ""}
       <p style="margin-bottom:0">${esc(t(imps.length > 1 ? "res.imposters" : "res.imposter"))}: <b>${names(imps)}</b>${clue >= 0 ? `<br>${esc(t("card.clueless"))}: <b>${esc(R.P[clue])}</b>` : ""}</p></div>
       ${guessers.length ? `<div class="card"><h2>${esc(t("res.judge"))}</h2>${guessers.map(g => `<div class="judge"><span class="nm">${esc(R.P[g])}</span><div class="jb" role="radiogroup" aria-label="${esc(R.P[g])}">
@@ -735,6 +751,11 @@ function screenExplain(keep) {
   show(`<div class="center pop"><div class="e-big">🏆</div><div class="big-h">${esc(t(winners.length > 1 ? "ex.tie" : "ex.winner", { team: winners.map(i => R.P[i]).join(" & ") }))}</div></div>
     ${R.best.pts > 0 ? `<div class="award"><div class="e" aria-hidden="true">🔥</div><div><b>${esc(t("aw.exBest"))}</b><span class="n">${esc(R.P[R.best.team])}</span><small>${esc(t("aw.exBest.text", { n: R.best.pts }))}</small></div></div>` : ""}
     <div class="card" style="margin-top:16px"><h2>${esc(t("score.match"))}</h2>${scoreTable(rows)}</div>
+    ${R.learn.length ? `<div class="card"><h2>📚 ${esc(t("learn.title"))} <span class="pill">${R.learn.length}</span></h2>
+      <p class="muted small" style="margin-top:0">${esc(t("learn.hint"))}</p>
+      <div class="chips">${R.learn.map(c => `<span class="chip static">${esc(c.w)}</span>`).join("")}</div>
+      ${R.learnSaved ? `<p class="small" style="margin-bottom:0">✓ ${esc(t("learn.saved", { name: R.learnSaved }))}</p>`
+        : `<button type="button" class="btn wide" style="margin-top:12px" data-act="learnSave">💾 ${esc(t("learn.save"))}</button>`}</div>` : ""}
     <button type="button" class="btn primary big" data-act="again">${esc(t("ex.newGame"))}</button>
     <button type="button" class="btn wide" data-act="home">${esc(t("aw.home"))}</button>`,
   { name: "explainEnd" });
@@ -765,7 +786,7 @@ function exResult(res) {
   const now = performance.now();
   if (now - (R.lastRes || 0) < Math.min(GUARD_MS, 300)) return;
   R.lastRes = now;
-  R.log.push({ w: R.card.w, res });
+  R.log.push({ w: R.card.w, f: R.card.f, res });
   sfx(res === "ok" ? "ok" : res === "taboo" ? "bad" : "tap");
   if (res !== "ok") vibrate(res === "taboo" ? 60 : 15);
   exNextCard();
@@ -775,6 +796,8 @@ function exConfirm() {
   const tm = exTeam(), pts = explainPoints(R.log, R.penalty);
   R.pts[tm] += pts;
   if (pts > R.best.pts) R.best = { pts, team: tm };
+  /* Nachlernen: übersprungene und „verbotene“ Karten (nach der Korrektur) */
+  R.log.filter(x => x.res !== "ok").forEach(x => { if (!R.learn.some(y => y.w.toLowerCase() === x.w.toLowerCase())) R.learn.push({ w: x.w, f: (x.f || []).slice() }); });
   R.turn++;
   if (R.turn >= R.P.length * R.rounds) {
     R.state = "done";
@@ -881,6 +904,7 @@ function screenLists() {
       <button type="button" class="btn" data-act="listEdit" data-v="${esc(l.id)}">${esc(t("lists.edit"))}</button></div></div>`).join("") : `<p class="muted">${esc(t("lists.empty"))}</p>`}
     </section>
     <button type="button" class="btn primary big" data-act="listEdit" data-v="">＋ ${esc(t("lists.new"))}</button>
+    <section class="card"><h2>🏫 ${esc(t("workshop.title"))}</h2><ol class="steps">${t("workshop.steps").split("\n").map(x => `<li>${esc(x)}</li>`).join("")}</ol></section>
     <section class="card"><h2>📥 ${esc(t("lists.receive"))}</h2><p class="muted small" style="margin-top:0">${esc(t("lists.receive.hint"))}</p>
       <div class="row"><button type="button" class="btn" data-act="scan">📷 ${esc(t("scan.title"))}</button>
       <button type="button" class="btn" data-act="paste">📋 ${esc(t("paste.title"))}</button></div></section>`,
@@ -980,12 +1004,37 @@ function shareText(id) {
   copyText(text);
 }
 /* Empfangen: Vorschau, dann speichern */
+/* Karten an ein Set anhängen; gleiche Begriffe werden nicht doppelt aufgenommen */
+function mergeCards(into, add) {
+  const have = new Set(into.map(c => c.w.toLowerCase()));
+  let n = 0;
+  add.forEach(c => { if (!have.has(c.w.toLowerCase()) && into.length < CARD_MAX) { have.add(c.w.toLowerCase()); into.push(c); n++; } });
+  return n;
+}
 function offerImport(set) {
   const sample = set.cards.slice(0, 4).map(c => esc(c.w)).join(", ");
   const withF = set.cards.filter(c => c.f.length >= 3).length;
-  dialog(t("import.title"), `<p><b>${esc(set.name)}</b> · ${esc(t("lists.count", { n: set.cards.length, f: withF }))}</p><p class="muted small">${sample}${set.cards.length > 4 ? " …" : ""}</p>`, [
+  const L = lists();
+  /* Klassen-Werkstatt: Karten mehrerer Gruppen in einer Liste sammeln */
+  const target = L.length ? `<label class="lbl" for="impTarget"><b>${esc(t("import.target"))}</b></label>
+    <select id="impTarget" class="sel"><option value="">${esc(t("import.asNew"))}</option>${L.map(l => `<option value="${esc(l.id)}">${esc(t("import.addTo", { name: l.name }))}</option>`).join("")}</select>` : "";
+  dialog(t("import.title"), `<p><b>${esc(set.name)}</b> · ${esc(t("lists.count", { n: set.cards.length, f: withF }))}</p><p class="muted small">${sample}${set.cards.length > 4 ? " …" : ""}</p>${target}`, [
     { label: t("cancel") },
-    { label: t("import.save"), primary: true, action: () => { const l = storeList(null, set.name, set.cards); if (l) { toast(t("lists.saved")); screenLists(); } } }
+    { label: t("import.save"), primary: true, action: () => {
+      const sel = document.getElementById("impTarget"), id = sel ? sel.value : "";
+      if (id) {
+        const all = lists(), l = all.find(x => x.id === id);
+        if (!l) return false;
+        const n = mergeCards(l.cards, set.cards);
+        if (!store.set("lists", all)) { toast(t("lists.saveFail")); return false; }
+        toast(t("import.merged", { n, name: l.name }));
+      } else {
+        if (!storeList(null, set.name, set.cards)) return false;
+        toast(t("lists.saved"));
+      }
+      SCAN = partCollector();
+      screenLists();
+    } }
   ]);
 }
 function screenPaste() {
@@ -1149,6 +1198,11 @@ function screenSettings(keep) {
       <div class="opt"><div class="lbl"><b>${esc(t("set.vibrate"))}</b><small>${esc(t("set.vibrate.hint"))}</small></div>${sw(t("set.vibrate"), store.get("vibrate", true), "vibrate")}</div>
       <div class="opt"><div class="lbl"><b>${esc(t("set.awake"))}</b><small>${esc(t("set.awake.hint"))}</small></div>${sw(t("set.awake"), store.get("awake", true), "awake")}</div>
     </section>
+    <section class="card"><h2>⭐ ${esc(t("pro.title"))}</h2>
+      ${isPro() ? `<p style="margin:0">✓ ${esc(t("pro.active"))}</p>`
+        : `<p class="muted small" style="margin-top:0">${esc(t("pro.settingsHint", { m: TRIALS }))}</p><button type="button" class="btn primary wide" data-act="paywall">${esc(t("pro.show"))}</button>`}
+      ${isPro() ? "" : `<button type="button" class="link" data-act="restore">${esc(t("pro.restore"))}</button>`}
+    </section>
     <section class="card"><h2>🏫 ${esc(t("school.title"))}</h2><p class="muted small" style="margin-top:0">${esc(t("school.hint"))}</p>
       <button type="button" class="btn${sch ? " primary" : ""} wide" data-act="${sch ? "schoolOff" : "schoolOn"}">${esc(t(sch ? "school.off" : "school.on"))}</button></section>
     <section class="card"><h2>${esc(t("set.data"))}</h2><p class="muted small" style="margin-top:0">${esc(t("set.data.hint"))}</p>
@@ -1185,7 +1239,8 @@ function schoolOff() {
 function wipeAll() {
   if (school()) return;
   confirmDlg(t("set.wipe.confirm"), t("set.wipe"), () => {
-    store.keys().forEach(k => store.remove(k));
+    /* Kauf und verbrauchte Testrunden bleiben erhalten */
+    store.keys().filter(k => !/^(pro|trial\.)/.test(k)).forEach(k => store.remove(k));
     setLang(detectLang());
     applyTheme();
     toast(t("set.wipe.done"));
@@ -1241,6 +1296,8 @@ const ACT = {
   vibrate: () => { if (toggleStore("vibrate", true)) vibrate(40); screenSettings(true); },
   awake: () => { toggleStore("awake", true); screenSettings(true); },
   schoolOn: () => schoolOn(),
+  paywall: () => screenPaywall(null),
+  restore: () => restorePro(),
   schoolOff: () => schoolOff(),
   recommend: () => recommendApp(),
   lists: () => screenLists(),
@@ -1278,7 +1335,13 @@ const ACT = {
   exPause: () => { if (TIMER && TIMER.running) { TIMER.pause(); R.state = "paused"; screenExplain(); } },
   exResume: () => { if (TIMER) { R.state = "running"; screenExplain(); TIMER.start(); } },
   exFix: v => { const [i, x] = v.split(":"); if (R.log[+i] && ["ok", "taboo", "skip"].includes(x)) R.log[+i].res = x; screenExplain(true); },
-  exNext: () => exConfirm()
+  exNext: () => exConfirm(),
+  learnSave: () => {
+    if (!R || !R.learn || !R.learn.length || R.learnSaved) return;
+    const d = new Date(), name = t("learn.listName", { date: d.getDate() + "." + (d.getMonth() + 1) + "." });
+    const l = storeList(null, name, R.learn);
+    if (l) { R.learnSaved = l.name; toast(t("lists.saved")); screenExplain(true); }
+  },
 };
 view.addEventListener("click", e => {
   const b = e.target.closest("[data-act]");
@@ -1312,10 +1375,11 @@ document.addEventListener("backbutton", e => {
   if (!dlgEl.hidden) { closeDialog(); return; }
   if (current.round) { abortRound(); return; }
   if (current.back === "lists") { screenLists(); return; }
+  if (current.name === "paywall") { goHome(); return; }
   if (current.name !== "home") { goHome(); return; }
   if (navigator.app && navigator.app.exitApp) navigator.app.exitApp();
 }, false);
-document.addEventListener("deviceready", () => { applyStatusBar(); }, false);
+document.addEventListener("deviceready", () => { applyStatusBar(); initShop(); }, false);
 if (window.matchMedia) {
   try { matchMedia("(prefers-color-scheme: light)").addEventListener("change", () => { applyStatusBar(); if (current.name === "settings") screenSettings(true); }); } catch (e) { /* alt */ }
 }

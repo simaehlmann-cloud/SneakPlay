@@ -11,6 +11,14 @@ Workflows folgen MatheSnack.
 
 Version 1.0.0 · versionCode 10000 · iOS-Build 10000 · Kennung `de.sneakplay.app`
 
+**Gratis und Vollversion:** Hochstapler ist dauerhaft gratis (alle
+Kategorien, auch Schule/Mathe), ebenso eigene Karten, QR-Austausch, Teams
+und Schulmodus. Missionen, Erklär’s! und Wort-Bombe: je 2 Testrunden, dann
+**Vollversion** als einmaliger In-App-Kauf (3,99 €, Produkt-ID
+`de.sneakplay.app.vollversion`, `www/js/shop.js`, Plugin
+cordova-plugin-purchase wie bei MatheSnack). Im Schulmodus keine
+Kaufknöpfe; „Alles löschen“ behält Kauf und verbrauchte Testrunden.
+
 ## Spielmodi
 
 | Modus | Spieler | Ablauf |
@@ -34,6 +42,16 @@ Klassenstufe (5–6 / bis 8 / bis 10) und ähnlichem Begriff; 25 + 15 Schul-Them
 40 + 24 Schul-Missionen, 61 + 30 Mathe-Bomben-Aufgaben – ohne Alkohol,
 Rauchen, Glücksspiel oder Gewalt (`validate.js` prüft das). Mathe-Decks und
 „Schule“ stehen auch im Hochstapler-Modus zur Wahl.
+
+**Zahlen-Hochstapler** (Kategorien „Gleicher Wert“ und „Gleiche Terme“): Die
+Crew bekommt denselben Wert in verschiedenen Darstellungen (½ / 0,5 / 50 %),
+der Hochstapler einen ähnlichen, nicht gleichwertigen. `validate.js` rechnet
+die Zahlgruppen nach.
+
+**Zum Nachlernen:** Nach jeder Erklär-Partie stehen übersprungene und
+„verbotene“ Karten als Liste bereit, ein Tipp speichert sie als eigenes Set.
+**Klassen-Werkstatt:** Beim Empfangen lassen sich Karten an eine
+bestehende Liste anhängen (ohne Doppelte).
 
 **Unterricht:** Teams für ganze Klassen · **eigene Karten** mit verbotenen
 Wörtern (Format `Begriff: verboten, verboten, …`) · Weitergabe per
@@ -60,6 +78,7 @@ www/                    die App (wird in die Cordova-Hülle kopiert)
   js/decks.js           Erklär- und Mathe-Decks, Schul-Themen/-Missionen
   js/game.js            Spiellogik ohne Oberfläche (Rollen, Wertung, Austausch)
   js/qr.js, js/jsqr.js  QR erzeugen (aus MatheSnack) und lesen (jsQR, Apache 2.0)
+  js/shop.js            Vollversion (In-App-Kauf) und Testrunden
   js/app.js             Bildschirme, Aktionen, Lebenszyklus
   datenschutz(-en).html, impressum(-en).html, lizenzen(-en).html
 docs/                   GitHub Pages: Support-Seite und Rechtstexte
@@ -69,8 +88,8 @@ store-assets/           Symbol 512, Vorstellungsgrafik, Bildschirmfotos
 config.xml              Cordova-Konfiguration
 make-icons.py           erzeugt alle Icons (läuft auch in den Workflows)
 res/                    Icons, Startbild, Privacy-Manifest
-validate.js             statische Prüfung (~8 000 Prüfungen)
-smoketest.js            Ablauftest im Browser (~180 Prüfungen)
+validate.js             statische Prüfung (~8 700 Prüfungen)
+smoketest.js            Ablauftest im Browser (~225 Prüfungen)
 .github/workflows/      Android (APK/AAB) und iOS (TestFlight)
 STORE-TEXTE.md          Texte, Datenschutz- und Altersangaben für beide Stores
 VEROEFFENTLICHEN.md     Schritt für Schritt bis in beide Stores

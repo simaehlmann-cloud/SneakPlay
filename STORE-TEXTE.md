@@ -60,6 +60,9 @@ Die App zeigt eine Aufgabe wie „Ein Tier“ oder „Eine Primzahl“. Begriff 
 
 FÜR DEN UNTERRICHT
 • Mathe-Karten nach Leitideen: Zahlen, Größen, Raum & Form, Funktionen, Daten & Zufall – mit Niveau nach Klassenstufe 5 bis 10
+• Zahlen-Hochstapler: Alle haben denselben Wert in anderer Darstellung (½, 0,5, 50 %) – wer hat etwas nicht Gleichwertiges? Auch mit Termen
+• „Zum Nachlernen“: Nach jeder Erklär-Partie stehen die schwierigen Begriffe als Liste bereit – mit einem Tipp gespeichert für die nächste Stunde
+• Klassen-Werkstatt: Gruppen erstellen Karten auf ihren Handys, die Lehrkraft sammelt sie per QR-Code in einer gemeinsamen Liste
 • Ganze Klassen spielen in Teams
 • Eigene Karten mit verbotenen Wörtern anlegen – gern von der Klasse selbst – und per QR-Code oder Text an andere Geräte weitergeben, ganz ohne Server und Konto
 • Schulmodus mit PIN: unterrichtstaugliche Themen und Missionen, keine Store- und Feedback-Knöpfe
@@ -71,6 +74,9 @@ SO FUNKTIONIERT’S
 
 INHALTE
 Über 180 Begriffe in neun Kategorien, über 180 Erklär-Karten mit je vier verbotenen Wörtern (davon über 100 aus der Mathematik), 40 Gesprächsthemen, über 60 Missionen und über 90 Bomben-Aufgaben.
+
+GRATIS UND VOLLVERSION
+Hochstapler ist dauerhaft gratis – mit allen Kategorien, auch Schule und Mathe. Eigene Karten, QR-Austausch, Teams und Schulmodus sind ebenfalls frei. Geheime Missionen, Erklär’s! und die Wort-Bombe lassen sich je zweimal testen und mit der Vollversion (einmaliger In-App-Kauf, kein Abo) unbegrenzt spielen.
 
 DATENSCHUTZ
 • Komplett offline spielbar
@@ -129,6 +135,9 @@ The app shows a task like “An animal” or “A prime number”. Say a word, p
 
 FOR THE CLASSROOM
 • Maths cards by topic area: number, measures, shape & space, algebra & graphs, data & probability – with levels from Year 5 to Year 10
+• Number imposter: everyone has the same value in a different form (½, 0.5, 50%) – who has one that isn’t equivalent? Also with algebraic expressions
+• “To revise”: after every Explain it! game the tricky words are listed – one tap saves them for the next lesson
+• Class workshop: groups create cards on their phones, the teacher collects them by QR code into one shared list
 • Whole classes play in teams
 • Create your own cards with forbidden words – the class can make them too – and pass them to other devices by QR code or text, without any server or account
 • School mode with PIN: classroom-friendly topics and missions, no store or feedback buttons
@@ -140,6 +149,9 @@ HOW IT WORKS
 
 CONTENT
 More than 180 words in nine categories, more than 180 explain cards with four forbidden words each (over 100 of them from maths), 40 chat topics, more than 60 missions and more than 90 bomb tasks.
+
+FREE AND FULL VERSION
+Imposter is free for good – with all categories, including school and maths. Own cards, QR sharing, teams and school mode are free too. Secret Missions, Explain it! and Word Bomb can each be tried twice and played without limits with the full version (one-time in-app purchase, no subscription).
 
 PRIVACY
 • Works completely offline
@@ -160,9 +172,26 @@ For 2 to 16 players or whole classes in teams. In English and German, in light a
 | Datenschutz-URL (EN) | `https://simaehlmann-cloud.github.io/SneakPlay/datenschutz-en.html` |
 | Kontakt-E-Mail | `smaehlmann.appdev@gmail.com` |
 | Copyright | `2026 Simon Mählmann` |
-| Preis | kostenlos, keine In-App-Käufe, keine Werbung |
+| Preis | kostenlos mit einem In-App-Kauf (Vollversion 3,99 €), keine Werbung |
 | Kategorie App Store | Spiele → Unterkategorien **Familie** und **Wort** |
 | Kategorie Play | Spiele → **Gelegenheitsspiele** (alternativ Wort) |
+
+### In-App-Kauf „Vollversion“
+
+| Feld | Wert |
+|---|---|
+| Produkt-ID (beide Stores) | `de.sneakplay.app.vollversion` (= `PRODUCT_ID` in `www/js/shop.js`) |
+| Typ | App Store Connect: **Nicht-Verbrauchsartikel** · Play Console: **Einmalkauf** (verwaltetes Produkt) |
+| Preis | 3,99 € (Preisstufe, die in Deutschland 3,99 € ergibt) |
+| Familienfreigabe (App Store) | **an** |
+| Anzeigename DE / EN | `Vollversion` / `Full version` |
+| Beschreibung DE | `Alle vier Spielmodi unbegrenzt: Missionen, Erklär’s! und Wort-Bombe.` |
+| Beschreibung EN | `All four game modes without limits: Missions, Explain it! and Word Bomb.` |
+| Prüfungs-Screenshot | `store-assets/review-paywall-phone69-de.png` (Vollversion-Bildschirm, nur für die Prüfung) |
+
+Gratis bleibt dauerhaft: Hochstapler (alle Kategorien), eigene Karten,
+QR-Austausch, Teams, Schulmodus. Missionen, Erklär’s! und Wort-Bombe: je 2
+Testrunden. Im Schulmodus gibt es keine Kaufknöpfe.
 
 ### Datenschutzangaben
 
@@ -182,8 +211,8 @@ Kamera liest nur QR-Codes auf dem Gerät – das gilt nicht als Erfassung.
 ### Altersfreigabe
 
 **App Store Connect:** Fragebogen überall „Keine“ bzw. „Nein“ (keine Gewalt,
-kein Alkohol/Tabak, kein Glücksspiel, kein Web-Zugang, keine Chats, keine
-Käufe) → **4+**. Eigene Kartensets werden nur direkt von Gerät zu Gerät
+kein Alkohol/Tabak, kein Glücksspiel, kein Web-Zugang, keine Chats) → **4+**.
+Der In-App-Kauf wird automatisch angezeigt. Eigene Kartensets werden nur direkt von Gerät zu Gerät
 weitergegeben (QR-Code oder Text über das Teilen-Menü) – es gibt keinen
 Dienst, über den Fremde Inhalte veröffentlichen; deshalb „Nein“ bei
 nutzergenerierten Inhalten.
@@ -199,7 +228,7 @@ aufwendiger – das lässt sich mit einem späteren Update nachholen.
 ### Prüfungsanmerkungen (für beide Stores, Englisch)
 
 ```
-SneakPlay is a pass-and-play party game for one phone. Players enter nicknames, pick a mode and pass the device around. Each player presses and holds the card to see their secret role; releasing hides it again. No account, no server, no ads, no purchases, no data collection – everything is stored locally. Designed for game nights and classroom use (maths cards by school year, team play, school mode with PIN). To test quickly: choose "Imposter", tap "Quick start with 4 players" → "Let's go", hold each card, tap "Seen it", then "Go to voting". "Explain it!" works with the two default teams. The camera is only used on request to read QR codes containing card sets from another device (Settings is not needed): Own lists → Receive cards → Scan QR code; images are processed on the device and never stored or sent. Language can be switched with the flags on the home screen.
+SneakPlay is a pass-and-play party game for one phone. Players enter nicknames, pick a mode and pass the device around. Each player presses and holds the card to see their secret role; releasing hides it again. No account, no server, no ads, no purchases, no data collection – everything is stored locally. Designed for game nights and classroom use (maths cards by school year, team play, school mode with PIN). Imposter is free; the other three modes can each be tried twice and are unlocked by the one-time in-app purchase "Full version" (de.sneakplay.app.vollversion). "Restore purchases" is in Settings and on the full version screen. To test quickly: choose "Imposter", tap "Quick start with 4 players" → "Let's go", hold each card, tap "Seen it", then "Go to voting". "Explain it!" works with the two default teams. The camera is only used on request to read QR codes containing card sets from another device (Settings is not needed): Own lists → Receive cards → Scan QR code; images are processed on the device and never stored or sent. Language can be switched with the flags on the home screen.
 ```
 
 ---
@@ -214,6 +243,7 @@ Im Ordner `store-assets/` (nicht Teil der App, erzeugt mit
 | `icon-512.png` | Play Console: App-Symbol | 512 × 512 |
 | `feature-graphic.png` | Play Console: Vorstellungsgrafik (Pflicht) | 1024 × 500 |
 | `screens/phone69-de-1…7.png` (+ `3b`), `…-en-…` | App Store Connect: iPhone 6,9″ | 1320 × 2868 |
+| `review-paywall-*.png` | Prüfungs-Screenshot des In-App-Kaufs | wie oben |
 | `screens/play-de-1…7.png` (+ `3b`), `…-en-…` | Play Console: Smartphone (höchstens 8) | 1080 × 1920 |
 
 Das 1024er Symbol für App Store Connect liegt in `res/ios/icon-1024.png`

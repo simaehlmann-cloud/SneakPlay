@@ -108,6 +108,11 @@
     <plugin name="cordova-plugin-x-socialsharing" spec="^6.0.4" />
     <!-- Bildschirm bleibt während einer Runde an (Timer, Wort-Bombe) -->
     <plugin name="cordova-plugin-insomnia" spec="^4.3.0" />
+    <!-- Vollversion als einmaliger In-App-Kauf (wie MatheSnack und Drawmory).
+         Produkt-ID in beiden Stores de.sneakplay.app.vollversion (= PRODUCT_ID in
+         www/js/shop.js). App Store Connect: „Nicht-Verbrauchsartikel“.
+         Play Console: Einmalkauf. Preis 3,99 €. -->
+    <plugin name="cordova-plugin-purchase" spec="^13.10.0" />
     <!-- Kamera-Erlaubnis unter Android zur Laufzeit abfragen (QR-Scanner) -->
     <plugin name="cordova-plugin-android-permissions" spec="^1.1.5" />
 </widget>

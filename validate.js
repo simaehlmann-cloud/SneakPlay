@@ -27,7 +27,7 @@ const visible = html => html.replace(/<style[\s\S]*?<\/style>|<script[\s\S]*?<\/
 /* ---------- Dateien und Syntax ---------- */
 const index = R("www/index.html"), config = R("config.xml");
 const scripts = [...index.matchAll(/<script src="([^"]+)"/g)].map(m => m[1]).filter(s => s !== "cordova.js");
-const ORDER = ["core", "i18n", "content", "decks", "game", "qr", "jsqr", "app"];
+const ORDER = ["core", "i18n", "content", "decks", "game", "qr", "jsqr", "shop", "app"];
 const OWN = ORDER.filter(f => f !== "jsqr");
 ok(JSON.stringify(scripts) === JSON.stringify(ORDER.map(f => `js/${f}.js`)), "index.html bindet die Skripte in falscher Reihenfolge ein: " + scripts.join(", "));
 ok(index.indexOf('<script src="cordova.js"></script>') > index.indexOf("js/app.js"), "cordova.js muss nach den App-Skripten stehen");
@@ -74,7 +74,7 @@ const [ma, mi, pa] = (version || "0.0.0").split(".").map(Number);
 ok(vCode === ma * 10000 + mi * 100 + pa, `android-versionCode ${vCode} passt zu ${version} (erwartet ${ma * 10000 + mi * 100 + pa})`);
 ok(iosBuild >= vCode, `ios-CFBundleVersion ${iosBuild} ist mindestens versionCode ${vCode}`);
 const appId = (config.match(/<widget id="([^"]+)"/) || [])[1];
-const app = R("www/js/app.js");
+const app = R("www/js/app.js") + "\n" + R("www/js/shop.js");
 ok((app.match(/const PLAY_ID = "([^"]+)"/) || [])[1] === appId, "PLAY_ID in app.js passt nicht zur Kennung in config.xml");
 const storeId = (app.match(/const APP_STORE_ID = "([^"]*)"/) || [])[1];
 ok(/^\d*$/.test(storeId || ""), "APP_STORE_ID darf nur Ziffern enthalten");
@@ -145,8 +145,8 @@ const sandbox = {
 };
 sandbox.window = sandbox;
 vm.createContext(sandbox);
-for (const f of ["core", "i18n", "content", "decks", "game", "qr"]) vm.runInContext(R(`www/js/${f}.js`) + "\n;globalThis.__x = 1;", sandbox, { filename: f + ".js" });
-const G = vm.runInContext("({ DECKS, DECK_GENERAL, DECK_MATH, DECK_ICON, SCHOOL_TOPICS, SCHOOL_MISSIONS, BOMB_MATH, MAX_PLAYERS, similarFor, explainPoints, parseCards, cardsToText, encodeSet, decodeSet, qrParts, parseQrPart, partCollector, QR, utf8Len, levelOk, I18N, CONTENT, CAT_ORDER, CAT_ICON, MODES, MIN_PLAYERS, assignImposter, pickFresh, pickManyFresh, tally, scoreImposter, scoreMissions, scoreBomb, bombPrompts, tickInterval, bombDuration, uniqueName, parseWords, cleanText, esc, BOMB_LEN })", sandbox);
+for (const f of ["core", "i18n", "content", "decks", "game", "qr", "shop"]) vm.runInContext(R(`www/js/${f}.js`) + "\n;globalThis.__x = 1;", sandbox, { filename: f + ".js" });
+const G = vm.runInContext("({ EQUIV, EQUIV_DECKS, PRODUCT_ID, TRIALS, FREE_MODES, trialsLeft, useTrial, unlocked, isPro, DECKS, DECK_GENERAL, DECK_MATH, DECK_ICON, SCHOOL_TOPICS, SCHOOL_MISSIONS, BOMB_MATH, MAX_PLAYERS, similarFor, explainPoints, parseCards, cardsToText, encodeSet, decodeSet, qrParts, parseQrPart, partCollector, QR, utf8Len, levelOk, I18N, CONTENT, CAT_ORDER, CAT_ICON, MODES, MIN_PLAYERS, assignImposter, pickFresh, pickManyFresh, tally, scoreImposter, scoreMissions, scoreBomb, bombPrompts, tickInterval, bombDuration, uniqueName, parseWords, cleanText, esc, BOMB_LEN })", sandbox);
 
 /* ---------- Übersetzungen ---------- */
 const LANGS = Object.keys(G.I18N);
@@ -163,6 +163,8 @@ const used = new Set([...app.matchAll(/\bt\("([a-z][\w.]*)"/g)].map(m => m[1]).f
 for (const m of app.matchAll(/t\([^()]*\?\s*"([\w.]+)"\s*:\s*"([\w.]+)"/g)) { used.add(m[1]); used.add(m[2]); }
 ["cat", "similar", "none"].forEach(h => { used.add("opt.hint." + h); used.add("opt.hint." + h + ".s"); });
 [0, 1, 2, 3].forEach(i => used.add("team.default." + i));
+used.add("why.level");
+G.MODES.filter(m => !G.FREE_MODES.includes(m)).forEach(m => used.add("pro.what." + m));
 G.MODES.forEach(m => { used.add("mode." + m); used.add("mode." + m + ".sub"); used.add("rules." + m); used.add("rules." + m + ".score"); });
 used.add("timer.startTalk");
 const awardKeys = [...R("www/js/game.js").matchAll(/key: "(\w+)"/g)].map(m => m[1]);
@@ -318,6 +320,51 @@ for (const l of LANGS) {
 }
 info("Erklär- und Mathe-Decks: je 4 verbotene Wörter, Niveaus, ähnliche Begriffe, Schul-Inhalte vollständig");
 
+/* ---------- Zahlen-Hochstapler ---------- */
+{
+  const toNum = s => {                       // nur zur Prüfung einfacher Zahlwerte
+    const x = s.replace(/\s/g, "").replace(",", ".").replace("…", "");
+    const fr = { "½": .5, "¼": .25, "¾": .75, "⅕": .2, "⅛": .125, "⅖": .4, "⅓": 1 / 3 };
+    if (fr[x] != null) return fr[x];
+    if (/^-?[\d.]+%$/.test(x)) return parseFloat(x) / 100;
+    if (/^-?\d+\/\d+$/.test(x)) { const [a, b] = x.split("/").map(Number); return a / b; }
+    if (/^-?[\d.]+$/.test(x)) return parseFloat(x);
+    return null;
+  };
+  for (const l of LANGS) for (const id of G.EQUIV_DECKS) {
+    const d = G.EQUIV[l][id];
+    ok(d && d.name && d.groups.length >= 10, `${l}/${id}: zu wenige Gruppen`);
+    ok(d.groups.filter(g => g.lv <= 2).length >= 5, `${l}/${id}: zu wenige Gruppen bis Klasse 8`);
+    for (const g of d.groups) {
+      ok(g.reps.length >= 4 && new Set(g.reps).size === g.reps.length, `${l}/${id}: Gruppe ${g.reps[0]} braucht ≥ 4 verschiedene Darstellungen`);
+      ok(g.near.length >= 3 && g.near.every(x => !g.reps.includes(x)), `${l}/${id}: Gruppe ${g.reps[0]}: Hochstapler-Werte fehlen oder sind gleichwertig notiert`);
+      /* Wo sich alles als Zahl lesen lässt: gleichwertig bzw. verschieden nachrechnen */
+      const v = g.reps.map(toNum);
+      if (v.every(x => x != null)) ok(v.every(x => Math.abs(x - v[0]) < 0.002), `${l}/${id}: ${g.reps.join(" = ")} sind nicht gleich`);
+      g.near.map(toNum).forEach((x, k) => { if (x != null && v[0] != null) ok(Math.abs(x - v[0]) > 0.002, `${l}/${id}: ${g.near[k]} ist gleich ${g.reps[0]}`); });
+      if (l === "en") ok(!/\d,\d/.test(g.reps.join(" ") + g.near.join(" ")), `en/${id}: Dezimalkomma statt -punkt`);
+    }
+  }
+  info("Zahlen-Hochstapler: Gruppen gleichwertig, Hochstapler-Werte verschieden");
+}
+
+/* ---------- Vollversion ---------- */
+{
+  ok(G.PRODUCT_ID === appId + ".vollversion", `PRODUCT_ID ${G.PRODUCT_ID} passt nicht zur Kennung`);
+  ok(config.includes(G.PRODUCT_ID) && st.includes(G.PRODUCT_ID), "PRODUCT_ID steht nicht in config.xml-Kommentar und STORE-TEXTE.md");
+  ok(/<plugin name="cordova-plugin-purchase"/.test(config), "config.xml: Kauf-Plugin fehlt");
+  ok(JSON.stringify(G.FREE_MODES) === JSON.stringify(["imposter"]) && G.TRIALS === 2, "Gratis-Modus und Testrunden wie vereinbart");
+  for (const k of Object.keys(memory)) delete memory[k];
+  ok(G.unlocked("imposter") && !G.unlocked("explain") && G.trialsLeft("explain") === 2, "Ohne Kauf: Hochstapler frei, Erklär’s! mit 2 Testrunden");
+  G.useTrial("explain"); G.useTrial("explain"); G.useTrial("explain");
+  ok(G.trialsLeft("explain") === 0 && G.trialsLeft("bomb") === 2, "Testrunden je Modus gezählt, nie negativ");
+  memory["sneakplay.pro"] = "true";
+  ok(G.unlocked("explain") && G.isPro(), "Mit Kauf alles frei");
+  for (const k of Object.keys(memory)) delete memory[k];
+  ok(/store\.keys\(\)\.filter\(k => !\/\^\(pro\|trial\\\.\)\//.test(app), "„Alles löschen“ muss Kauf und Testrunden behalten");
+  info("Vollversion: Produkt-ID, Plugin, Gratis-Modus, Testrunden");
+}
+
 /* ---------- Eigene Karten und Austausch ---------- */
 {
   const c = G.parseCards("Parallelogramm: Viereck, parallel, Seiten, schief, Parallelogramm\nPrimzahl: Teiler;teilbar\nA, B, a\n\n  C  ");
@@ -355,7 +402,7 @@ info("Eigene Karten, Text- und QR-Austausch, ähnlicher Begriff, Erklär-Wertung
 {
   /* Grobe Prüfung: ${…} in HTML-Vorlagen muss esc(), names(), eine Zahl,
      ein Symbol oder ein bekannter Baustein sein. */
-  const SAFE = /^(esc\(|x\.res|sample\b|set\.cards\.length|mathOn|school\(\)|T\.|teamMode|extraHtml|max\b|TEAM_COLORS|on\b|deckIcon|general\.map|withSchoolMath|customChips|chip\(|dot\(|levelSeg|playersCard|teamsCard|exScoreboard|awardRows|scoreTable|c\.icon|c\.f|pts|tm\b|sch\b|!!on|disabled|withAbort|MODES\.|fmtTime|b\.|l\b|String\(|act\b|disabledFn|options\.|buttons\.|\[\[|names\(|t\("|i \+ 1|n\b|k \* 90|MODE_ICON|CAT_ICON|R\.icon|a\.icon|i\b|g\b|k\b|s\b|d\b|MAX_|MIN_|LANG|legalUrl|topbar|backbar|langSwitch|seg\(|sw\(|timerCard|modeOptions|catChips|scoreCard|countsLine|head|body|sec|first|why|rate|share|l\.words\.length|R\.counts|c\b|v\b|f\b|id\b|o\.|dark|light|i === |k === |R\.|guessers|holders|n \?|st ===|parts|rows|r\.awards|order|L\.length|P\.map|builtIn|a\.who|imps|clue|topic|ready|\(|"|')/;
+  const SAFE = /^(esc\(|canAct|modeBadge|L\.map|target\b|isPro\(\)|pro \?|paid\.map|platformId\(\)|sch \?|x\.res|sample\b|set\.cards\.length|mathOn|school\(\)|T\.|teamMode|extraHtml|max\b|TEAM_COLORS|on\b|deckIcon|general\.map|withSchoolMath|customChips|chip\(|dot\(|levelSeg|playersCard|teamsCard|exScoreboard|awardRows|scoreTable|c\.icon|c\.f|pts|tm\b|sch\b|!!on|disabled|withAbort|MODES\.|fmtTime|b\.|l\b|String\(|act\b|disabledFn|options\.|buttons\.|\[\[|names\(|t\("|i \+ 1|n\b|k \* 90|MODE_ICON|CAT_ICON|R\.icon|a\.icon|i\b|g\b|k\b|s\b|d\b|MAX_|MIN_|LANG|legalUrl|topbar|backbar|langSwitch|seg\(|sw\(|timerCard|modeOptions|catChips|scoreCard|countsLine|head|body|sec|first|why|rate|share|l\.words\.length|R\.counts|c\b|v\b|f\b|id\b|o\.|dark|light|i === |k === |R\.|guessers|holders|n \?|st ===|parts|rows|r\.awards|order|L\.length|P\.map|builtIn|a\.who|imps|clue|topic|ready|\(|"|')/;
   const bad = [];
   for (const m of app.matchAll(/\$\{([^}]{0,60})/g)) if (!SAFE.test(m[1].trim())) bad.push(m[1].trim());
   ok(bad.length === 0, "Vorlagen ohne esc(): " + bad.slice(0, 8).join(" | "));

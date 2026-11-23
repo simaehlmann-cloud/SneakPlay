@@ -27,7 +27,8 @@ const ok = (c, m) => { if (c) console.log("✓ " + m); else { fehler++; console.
   watch(page);
   const act = (a, v) => page.click(v == null ? `[data-act="${a}"]` : `[data-act="${a}"][data-v="${v}"]`);
   const text = sel => page.textContent(sel);
-  const fresh = async () => { await page.goto(APP); await page.evaluate(() => localStorage.clear()); await page.goto(APP); };
+  /* Die meisten Abläufe mit Vollversion; Testrunden und Kaufbildschirm prüft ein eigener Abschnitt */
+  const fresh = async () => { await page.goto(APP); await page.evaluate(() => { localStorage.clear(); localStorage.setItem("sneakplay.pro", "true"); }); await page.goto(APP); };
   const setPlayers = async names => { await page.evaluate(n => localStorage.setItem("sneakplay.players", JSON.stringify(n)), names); await page.goto(APP); };
   /* Alle Karten aufdecken; liefert die Texte der Karten */
   const revealAll = async n => {
@@ -230,9 +231,10 @@ const ok = (c, m) => { if (c) console.log("✓ " + m); else { fehler++; console.
   await act("lang", "en");
   ok(await page.isVisible("text=Settings") && (await page.getAttribute("html", "lang")) === "en", "Sprache Englisch");
   await noOverflow("Einstellungen");
-  await page.click(`a[href="datenschutz-en.html"]`);
+  await Promise.all([page.waitForNavigation(), page.click(`a[href="datenschutz-en.html"]`)]);
   ok(await page.isVisible("text=Privacy Policy"), "Datenschutz (EN) erreichbar");
-  await page.click("a.back");
+  await Promise.all([page.waitForNavigation(), page.click("a.back")]);
+  await page.waitForSelector(".hero");
   ok(await page.isVisible(".hero"), "Zurück aus dem Rechtstext");
   ok(await page.isVisible("text=Players"), "Sprache bleibt nach Neuladen erhalten");
 
@@ -408,6 +410,65 @@ const ok = (c, m) => { if (c) console.log("✓ " + m); else { fehler++; console.
   await page.evaluate(() => goHome());
   await act("mode", "imposter");
 
+
+  /* ---------- Zahlen-Hochstapler ---------- */
+  await page.evaluate(() => goHome());
+  await act("lang", "de");
+  await act("mode", "imposter");
+  while (await page.$('[data-act="cat"][aria-checked="true"]')) await page.click('[data-act="cat"][aria-checked="true"]');
+  await act("cat", "m_equiv_num");
+  await act("level", 1);
+  await act("hint", "similar");
+  await setPlayers(["Anna", "Ben", "Cleo", "Dana", "Emil"]);
+  await act("start");
+  const eq = await page.evaluate(() => ({ role: R.role, val: R.val, alt: R.alt, reps: R.reps }));
+  ok(eq.reps && eq.val.filter((v, i) => eq.role[i] === "crew").every(v => eq.reps.includes(v)), "Crew bekommt gleichwertige Darstellungen");
+  ok(new Set(eq.val.filter(Boolean)).size > 1, "Crew-Mitglieder sehen verschiedene Schreibweisen");
+  ok(eq.alt && !eq.reps.includes(eq.alt), `Hochstapler hat einen nicht gleichwertigen Wert (${eq.alt})`);
+  cards = await revealAll(5);
+  ok(cards.every((c, i) => eq.role[i] === "clue" || c.includes("Dein Wert")), "Alle Karten sehen gleich aus");
+  ok(await page.isVisible("text=Eigenschaft seines Werts"), "Spielanleitung für Werte statt Wörter");
+  await act("tovote"); await act("accuse", eq.role.indexOf("imp")); await act("reveal"); await act("showWord");
+  ok(await page.isVisible(`text=${eq.reps.join(" = ")}`), "Auflösung zeigt alle gleichwertigen Darstellungen");
+  await page.evaluate(() => goHome());
+  await act("hint", "cat");
+
+  /* ---------- Nachlernen nach Erklär’s! ---------- */
+  await act("mode", "explain");
+  while (await page.$('[data-act="deck"][aria-checked="true"]')) await page.click('[data-act="deck"][aria-checked="true"]');
+  await act("deck", "m_data");
+  await act("exRounds", 1);
+  await act("start");
+  await act("exGo");
+  const skipped = await text(".excard .w");
+  await act("exRes", "skip");
+  await act("exRes", "ok");
+  await page.evaluate(() => { TIMER.left = 50; TIMER.startedAt = performance.now(); });
+  await page.waitForTimeout(400);
+  await act("exNext");
+  await act("exGo");
+  await act("exRes", "taboo");
+  await page.evaluate(() => { TIMER.left = 50; TIMER.startedAt = performance.now(); });
+  await page.waitForTimeout(400);
+  await act("exNext");
+  ok(await page.isVisible("text=Zum Nachlernen") && await page.isVisible(`.chip.static >> text=${skipped}`), "Übersprungene Begriffe stehen zum Nachlernen bereit");
+  await act("learnSave");
+  ok(await page.evaluate(() => lists().some(l => l.name.startsWith("Nachlernen") && l.cards.length === 2 && l.cards.every(c => c.f.length === 4))), "Nachlernen-Liste mit verbotenen Wörtern gespeichert");
+  ok(await page.isVisible("text=Gespeichert als"), "Speichern wird bestätigt");
+
+  /* ---------- Klassen-Werkstatt: Karten in bestehende Liste ---------- */
+  const target = await page.evaluate(() => lists().find(l => l.name.startsWith("Nachlernen")).id);
+  await page.evaluate(() => screenLists());
+  ok(await page.isVisible("text=Klassen-Werkstatt"), "Werkstatt-Anleitung bei den eigenen Listen");
+  await page.evaluate(() => { SCAN = partCollector(); offerImport(decodeSet("SneakPlay-Karten v1\nGruppe 2\nMedian|Mitte|ordnen|Reihe|Wert\nModus|häufig|oft|Wert|meist\nQuartil|Viertel|Box|Median|Daten")); });
+  await page.selectOption("#impTarget", target);
+  await page.click(".dlg .btn.primary");
+  const merged = await page.evaluate(id => lists().find(l => l.id === id).cards.map(c => c.w), target);
+  ok(merged.includes("Modus") && merged.length === new Set(merged.map(w => w.toLowerCase())).size, `Karten zusammengeführt ohne Doppelte (${merged.length})`);
+  ok(await page.isVisible("text=neue Karten in"), "Zusammenführen wird bestätigt");
+  await page.evaluate(() => goHome());
+  await act("mode", "imposter");
+
   /* ---------- Kleines Display ---------- */
   await page.setViewportSize({ width: 320, height: 568 });
   await noOverflow("Spielfeld 320 px");
@@ -425,7 +486,8 @@ const ok = (c, m) => { if (c) console.log("✓ " + m); else { fehler++; console.
   await act("wipe");
   await page.click(".dlg .btn.danger");
   await page.waitForTimeout(50);
-  ok(await page.evaluate(() => Object.keys(localStorage).filter(k => k.startsWith("sneakplay.")).length === 0), "Alle Daten gelöscht");
+  ok(await page.evaluate(() => Object.keys(localStorage).filter(k => k.startsWith("sneakplay.") && !/^sneakplay\.(pro|trial\.)/.test(k)).length === 0), "Alle Daten gelöscht");
+  ok(await page.evaluate(() => localStorage.getItem("sneakplay.pro") === "true"), "Kauf bleibt nach „Alles löschen“ erhalten");
 
   /* ---------- Rechtstexte und Pages ---------- */
   for (const f of ["datenschutz", "datenschutz-en", "impressum", "impressum-en", "lizenzen", "lizenzen-en"]) {
@@ -434,6 +496,54 @@ const ok = (c, m) => { if (c) console.log("✓ " + m); else { fehler++; console.
   }
   const r = await page.goto(ROOT + "/docs/index.html");
   ok(r.ok() && await page.isVisible("text=Hilfe & Kontakt"), "Pages-Infoseite lädt");
+
+  /* ---------- Gratis-Modus, Testrunden und Vollversion ---------- */
+  {
+    await page.goto(APP);
+    await page.evaluate(() => { localStorage.clear(); localStorage.setItem("sneakplay.players", JSON.stringify(["A", "B", "C", "D"])); localStorage.setItem("sneakplay.lang", JSON.stringify("de")); });
+    await page.goto(APP);
+    ok(await page.isVisible('.mode[data-v="imposter"] .mbadge.free'), "Hochstapler als gratis gekennzeichnet");
+    ok(/2 Tests/.test(await text('.mode[data-v="explain"] .mbadge')), "Andere Modi zeigen 2 Testrunden");
+    await act("start");
+    ok(await page.isVisible("#hold") && !(await page.isVisible(".dlg-box")), "Hochstapler startet ohne Nachfrage");
+    await page.evaluate(() => goHome());
+    await act("mode", "explain");
+    for (let k = 2; k >= 1; k--) {
+      await act("start");
+      ok(await page.isVisible(`text=noch ${k} von 2 Testrunden`), `Testrunde ${3 - k} wird angeboten`);
+      await page.click(".dlg .btn.primary");
+      ok(await page.isVisible('[data-act="exGo"]'), "Testrunde startet");
+      await page.evaluate(() => goHome());
+    }
+    ok(/Vollversion/.test(await text('.mode[data-v="explain"] .mbadge')), "Nach 2 Runden: Vollversion nötig");
+    await act("start");
+    ok(await page.isVisible("text=Die 2 Testrunden für Erklär’s! sind aufgebraucht") && await page.isVisible("#buyBtn"), "Kaufbildschirm nach den Testrunden");
+    ok(await page.isDisabled("#buyBtn") && await page.isVisible("text=Kaufen geht nur in der installierten App"), "Im Browser kein Kauf");
+    await page.evaluate(() => goHome());
+    await act("mode", "bomb");
+    ok(/2 Tests/.test(await text('.mode[data-v="bomb"] .mbadge')), "Testrunden je Modus getrennt");
+    /* Schulmodus: keine Kaufknöpfe */
+    await page.evaluate(() => { localStorage.setItem("sneakplay.school", "true"); localStorage.setItem("sneakplay.schoolPin", JSON.stringify("1234")); });
+    await act("mode", "explain");
+    await act("start");
+    ok(!(await page.$("#buyBtn")) && await page.isVisible("text=Im Schulmodus gibt es keine Kaufknöpfe"), "Schulmodus zeigt keine Kaufknöpfe");
+    await page.evaluate(() => goHome());
+    await act("mode", "bomb");
+    await act("start");
+    ok(!(await page.isVisible('.dlg-box >> text=Vollversion ansehen')), "Schulmodus: Testrunden-Dialog ohne Kaufverweis");
+    await page.click(".dlg .btn:not(.primary)");
+    /* Vollversion freigeschaltet (Kauf gemeldet) */
+    await page.evaluate(() => { localStorage.setItem("sneakplay.school", "false"); setPro(); });
+    await page.waitForTimeout(50);
+    ok(!(await page.$(".mbadge")), "Mit Vollversion keine Hinweise mehr");
+    await act("mode", "explain");
+    await act("start");
+    ok(await page.isVisible('[data-act="exGo"]'), "Mit Vollversion startet jeder Modus sofort");
+    await page.evaluate(() => goHome());
+    await act("settings");
+    ok(await page.isVisible("text=Vollversion freigeschaltet"), "Einstellungen zeigen den Kauf");
+    await page.evaluate(() => goHome());
+  }
 
   /* ---------- Schutz gegen Doppeltippen (ohne Testschalter) ---------- */
   {

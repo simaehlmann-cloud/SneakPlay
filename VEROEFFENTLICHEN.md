@@ -10,8 +10,9 @@ API-Schlüssel, Verträge und Entwicklerkonten hast du schon.
 | App-Store-Connect-API-Schlüssel (.p8, Key-ID, Issuer-ID) | App in App Store Connect |
 | Play-Console-Entwicklerkonto | App in der Play Console + **eigener** Keystore |
 
-SneakPlay braucht **keine** besonderen Fähigkeiten: kein In-App-Kauf, keine
-Associated Domains. Die Kamera dient nur dem QR-Scanner für Kartensets
+SneakPlay braucht keine Associated Domains. Neu gegenüber einer reinen
+Gratis-App: **ein In-App-Kauf „Vollversion“** (wie das Lehrkraft-Paket von
+MatheSnack, gleiches Plugin). Die Kamera dient nur dem QR-Scanner für Kartensets
 (Zweckangabe in der `config.xml`, Android-Erlaubnis zur Laufzeit, Kamera
 optional) – wie bei MatheSnack.
 
@@ -57,6 +58,21 @@ Heißt das Repo anders, die URLs in `STORE-TEXTE.md` anpassen.
    „Weiterempfehlen“ (vorher bewusst ausgeblendet). `ios-CFBundleVersion`
    in der `config.xml` anheben und neu bauen.
 
+## 2a. In-App-Kauf in App Store Connect
+
+1. **Verträge, Steuern und Bankverbindung:** Der Vertrag für kostenpflichtige
+   Apps muss aktiv sein (bei MatheSnack schon erledigt).
+2. App SneakPlay → **Monetarisierung → In-App-Käufe → +** →
+   **Nicht-Verbrauchsartikel**, Referenzname `Vollversion`, Produkt-ID
+   `de.sneakplay.app.vollversion` (exakt so, sie steht in `www/js/shop.js`).
+3. Preis 3,99 €, Familienfreigabe **an**, Lokalisierungen DE/EN und
+   Prüfungs-Screenshot aus `STORE-TEXTE.md`/`store-assets/`.
+4. Den Kauf beim **ersten** Einreichen der App-Version mit auswählen
+   („In-App-Käufe und Abonnements“ auf der Versionsseite) – sonst wird er
+   nicht mitgeprüft und bleibt in der Live-App unsichtbar.
+5. Testen in TestFlight: Kauf mit Sandbox-Konto, „Käufe wiederherstellen“
+   nach Neuinstallation.
+
 ## 3. Android → Play Console
 
 1. **Eigenen Keystore** erzeugen (nie den von MatheSnack – Schlüssel und
@@ -77,9 +93,14 @@ Heißt das Repo anders, die URLs in `STORE-TEXTE.md` anpassen.
    App-Zugriff „keine Einschränkungen“, Werbung „nein“, Einstufung (IARC),
    Zielgruppe 13+, Datensicherheit „keine Daten erhoben/geteilt“,
    Werbe-ID „nein“, Behörden-/Finanz-/Gesundheits-Apps „nein“.
-6. **Store-Eintrag**: Texte aus `STORE-TEXTE.md`, Grafiken aus
+6. **In-App-Kauf:** Monetarisieren → Produkte → **Einmalkäufe** → Produkt
+   `de.sneakplay.app.vollversion`, Preis 3,99 €, Namen/Beschreibung aus
+   `STORE-TEXTE.md`, aktivieren. Erst nach dem ersten Upload eines AAB
+   (interner Test) lässt sich das Produkt anlegen. Lizenztester eintragen,
+   dann kostet der Testkauf nichts.
+7. **Store-Eintrag**: Texte aus `STORE-TEXTE.md`, Grafiken aus
    `store-assets/` (Symbol 512, Vorstellungsgrafik, `play-*.png`).
-7. **Test → Interner Test** → AAB hochladen → dich selbst als Tester. Bei
+8. **Test → Interner Test** → AAB hochladen → dich selbst als Tester. Bei
    neuen Privatkonten verlangt die Play Console vor der Produktion einen
    **geschlossenen Test mit mindestens 12 Testern über 14 Tage** – früh
    starten (z. B. Familie, Kollegium, Seminar).
@@ -105,7 +126,12 @@ Heißt das Repo anders, die URLs in `STORE-TEXTE.md` anpassen.
    dann „Übernehmen“. Einmal „Kamera verweigern“ testen → Hinweis + Foto/Text.
 10. **Schulmodus:** mit PIN einschalten, Startseite zeigt „Schulmodus aktiv“,
     Missionen sind Schul-Missionen; mit falscher PIN bleibt er an.
-11. Dunkel-/Hellmodus, Bildschirm anlassen, „Alles löschen“.
+11. Dunkel-/Hellmodus, Bildschirm anlassen, „Alles löschen“ (Kauf bleibt).
+12. **Vollversion:** Hochstapler startet ohne Nachfrage; Erklär’s! bietet
+    zwei Testrunden, danach den Kaufbildschirm mit Preis. Kauf (Sandbox bzw.
+    Lizenztester), App neu installieren, „Käufe wiederherstellen“.
+13. **Zahlen-Hochstapler:** Kategorie „Gleicher Wert“ – Karten zeigen
+    verschiedene Schreibweisen desselben Werts.
 
 ## 5. Einreichen
 

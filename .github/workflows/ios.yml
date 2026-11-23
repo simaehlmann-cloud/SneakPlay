@@ -174,7 +174,7 @@ jobs:
             echo "Gerätefamilie:    nur Handy"
           fi
 
-          for P in cordova-plugin-statusbar cordova-plugin-x-socialsharing cordova-plugin-insomnia cordova-plugin-android-permissions; do
+          for P in cordova-plugin-purchase cordova-plugin-statusbar cordova-plugin-x-socialsharing cordova-plugin-insomnia cordova-plugin-android-permissions; do
             cordova plugin ls | grep -q "^$P" && echo "Plugin $P installiert" || { echo "::error::Plugin $P fehlt."; FEHLER=1; }
           done
 

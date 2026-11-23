@@ -112,7 +112,7 @@ jobs:
           else
             echo "::error::Ziel-SDK ist nicht ${TARGET_SDK}. Der Upload würde abgelehnt."; FEHLER=1
           fi
-          for P in cordova-plugin-statusbar cordova-plugin-x-socialsharing cordova-plugin-insomnia cordova-plugin-android-permissions; do
+          for P in cordova-plugin-purchase cordova-plugin-statusbar cordova-plugin-x-socialsharing cordova-plugin-insomnia cordova-plugin-android-permissions; do
             cordova plugin ls | grep -q "^$P" && echo "Plugin $P installiert" || { echo "::error::Plugin $P fehlt."; FEHLER=1; }
           done
           grep -q 'android.permission.VIBRATE' platforms/android/app/src/main/AndroidManifest.xml \
@@ -144,6 +144,9 @@ jobs:
           "$AAPT2" dump permissions "$APK"
           "$AAPT2" dump permissions "$APK" | grep -q 'android.permission.VIBRATE' \
             || { echo "::error::Das APK fordert VIBRATE nicht an – Vibrieren bliebe stumm."; exit 1; }
+          # Ohne BILLING bliebe der Kaufknopf der Vollversion wirkungslos.
+          "$AAPT2" dump permissions "$APK" | grep -q 'com.android.vending.BILLING' \
+            || { echo "::error::Das APK fordert com.android.vending.BILLING nicht an – In-App-Kauf wäre wirkungslos."; exit 1; }
           cp "$APK" "$GITHUB_WORKSPACE/SneakPlay-debug.apk"
 
       - name: Debug-APK hochladen

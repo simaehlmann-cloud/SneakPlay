@@ -27,7 +27,7 @@ const NAMES = { de: ["Anna", "Ben", "Cleo", "Dana", "Emil", "Finn"], en: ["Amy",
       await page.evaluate(([lang, names]) => {
         localStorage.clear();
         const set = (k, v) => localStorage.setItem("sneakplay." + k, JSON.stringify(v));
-        set("lang", lang); set("theme", "dark"); set("players", names); set("seenRules", true); set("sound", false);
+        set("lang", lang); set("theme", "dark"); set("pro", true); set("players", names); set("seenRules", true); set("sound", false);
         set("imp", { cats: ["food", "everyday", "animals", "music"], imps: 1, clueless: false, hint: true, timer: 3, vote: "secret" });
       }, [lang, NAMES[lang]]);
       await page.goto(ROOT + "/www/index.html");
@@ -40,7 +40,13 @@ const NAMES = { de: ["Anna", "Ben", "Cleo", "Dana", "Emil", "Finn"], en: ["Amy",
       await page.evaluate(() => { R.role = R.role.map((r, i) => (i === 1 ? "imp" : "crew")); R.starter = 0; });
       const hold = async () => { const b = await page.locator("#hold").boundingBox(); await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2); await page.mouse.down(); };
       await hold(); await shot(2); await page.mouse.up(); await page.click("#nextBtn");
-      await hold(); await shot(3); await page.mouse.up();          // Hochstapler-Karte
+
+      /* Zahlen-Hochstapler: gleichwertige Darstellung */
+      await page.evaluate(() => goHome());
+      await page.evaluate(() => { localStorage.setItem("sneakplay.imp", JSON.stringify({ cats: ["m_equiv_num"], imps: 1, clueless: false, hint: "similar", timer: 3, vote: "secret" })); localStorage.setItem("sneakplay.level", "1"); });
+      await act("start");
+      await page.evaluate(() => { const g = EQUIV[LANG].m_equiv_num.groups[2]; R.reps = g.reps; R.role = R.role.map((r, i) => (i === 3 ? "imp" : "crew")); R.val = R.role.map((r, i) => (r === "crew" ? g.reps[(i + 1) % g.reps.length] : "")); R.alt = g.near[0]; R.word = g.reps[0]; });
+      await hold(); await shot(3); await page.mouse.up();
 
       /* Erklär’s! mit Mathe-Karte */
       await page.evaluate(() => goHome());
@@ -87,6 +93,16 @@ const NAMES = { de: ["Anna", "Ben", "Cleo", "Dana", "Emil", "Finn"], en: ["Amy",
         screenShare(l.id);
       }, lang);
       await shot(7);
+
+      /* Vollversion – nur für die Prüfung des In-App-Kaufs, nicht für den Store-Eintrag */
+      await page.evaluate(([target, lang]) => {
+        localStorage.removeItem("sneakplay.pro");
+        window.cordova = { platformId: target === "play" ? "android" : "ios" };   // wie in der App
+        shop.ready = true; shop.price = lang === "de" ? "3,99 €" : "€3.99";
+        screenPaywall(null);
+      }, [target, lang]);
+      await page.waitForTimeout(400);
+      await page.screenshot({ path: path.join(OUT, "..", `review-paywall-${target}-${lang}.png`) });
       await ctx.close();
     }
   }

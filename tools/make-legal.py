@@ -44,32 +44,36 @@ PAGES = {
   <ul>
     <li>die Namen der Mitspielerinnen und Mitspieler, die Sie eingeben (beliebige Spitznamen genügen)</li>
     <li>der Punktestand des laufenden Spieleabends</li>
-    <li>eigene Begriffslisten, die Sie anlegen</li>
+    <li>Teamnamen und Punktestände</li>
+    <li>eigene Kartensets, die Sie anlegen oder von einem anderen Gerät übernehmen</li>
     <li>zuletzt gespielte Begriffe, damit sie sich nicht zu schnell wiederholen</li>
-    <li>Einstellungen zu Sprache, Darstellung, Tönen, Vibration, Bildschirm und Spielmodus</li>
+    <li>Einstellungen zu Sprache, Darstellung, Tönen, Vibration, Bildschirm, Spielmodus und Schulmodus (einschließlich der selbst gewählten Schulmodus-PIN)</li>
   </ul>
   <p>Diese Daten werden nicht übertragen und sind für den Anbieter nicht einsehbar. Sie lassen sich in der App unter „Einstellungen → Daten auf diesem Gerät“ löschen; beim Entfernen der App wird alles gelöscht. Bitte geben Sie in eigenen Listen keine sensiblen Angaben über andere Personen ein.</p>
 
-  <h2>4. Verbindungen ins Internet</h2>
+  <h2>4. Kamera und Austausch von Kartensets</h2>
+  <p>Eigene Kartensets lassen sich ohne Server an andere Geräte weitergeben: Das sendende Gerät zeigt einen QR-Code an, das empfangende liest ihn mit der Kamera. Die Kamera wird nur geöffnet, wenn Sie „QR-Code scannen“ wählen; Ihr Gerät fragt dafür um Erlaubnis. Das Kamerabild wird ausschließlich auf dem Gerät ausgewertet und weder gespeichert noch übertragen. Dasselbe gilt für ein Foto, das Sie über „Foto aufnehmen“ wählen. Alternativ lässt sich ein Kartenset als Text über das Teilen-Menü Ihres Geräts weitergeben und auf dem anderen Gerät einfügen; wohin Sie den Text senden (etwa einen Messenger), entscheiden Sie selbst. Ein Kartenset enthält nur den Namen der Liste und die Begriffe – keine Spielernamen und keine Punkte.</p>
+
+  <h2>5. Verbindungen ins Internet</h2>
   <p>Die App baut von sich aus keine Netzwerkverbindungen auf. Sie lädt keine Schriftarten, Bibliotheken oder Inhalte von fremden Servern.</p>
   <p>In den Einstellungen gibt es Knöpfe, die nur auf Ihren Wunsch etwas öffnen: „Bewerten“ öffnet die Seite der App beim App-Vertrieb, über den Sie die App bezogen haben. „Weiterempfehlen“ öffnet das Teilen-Menü Ihres Geräts mit einem kurzen Text und dem Link zur App. „Feedback senden“ öffnet Ihr E-Mail-Programm mit einer vorbereiteten Nachricht (App-Version, Betriebssystem-Version, Sprache). Was Sie davon absenden, entscheiden Sie selbst; die App überträgt dabei nichts. Eine E-Mail an den Anbieter wird nur zur Beantwortung verwendet (Art. 6 Abs. 1 lit. f DSGVO) und danach gelöscht.</p>
 
-  <h2>5. Bezug über einen App-Vertrieb</h2>
+  <h2>6. Bezug über einen App-Vertrieb</h2>
   <p>Beim Herunterladen der App über einen App-Vertrieb verarbeitet dessen Betreiber eigenständig Daten (etwa Konto, Gerät und Zeitpunkt des Downloads). Darauf hat der Anbieter dieser App keinen Einfluss. Es gelten die Datenschutzbestimmungen des jeweiligen Betreibers. Der Anbieter erhält von dort höchstens zusammengefasste, nicht personenbezogene Statistiken (etwa Anzahl der Downloads).</p>
 
-  <h2>6. Diese Webseite</h2>
+  <h2>7. Diese Webseite</h2>
   <p>Diese Erklärung und die Infoseite zur App werden zusätzlich über GitHub Pages bereitgestellt, einen Dienst der GitHub Inc., 88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, USA. Beim Abruf im Browser verarbeitet GitHub technisch notwendige Verbindungsdaten wie die IP-Adresse, um die Seite auszuliefern und den Dienst abzusichern. Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO; das berechtigte Interesse liegt in der zuverlässigen Bereitstellung der Seiten. GitHub ist nach dem EU-US Data Privacy Framework zertifiziert. Einzelheiten: <a href="https://docs.github.com/de/site-policy/privacy-policies/github-general-privacy-statement">Datenschutzerklärung von GitHub</a>. Die App selbst ruft nichts von GitHub ab.</p>
 
-  <h2>7. Kinder und Jugendliche</h2>
-  <p>SneakPlay ist für alle Altersgruppen geeignet, richtet sich aber nicht speziell an Kinder. Die App erhebt von niemandem Daten. Es gibt keine Werbung, keine Käufe und keine Kommunikation mit anderen Personen über das Internet.</p>
+  <h2>8. Kinder, Jugendliche und Einsatz in der Schule</h2>
+  <p>SneakPlay ist für alle Altersgruppen geeignet, richtet sich aber nicht speziell an Kinder. Die App erhebt von niemandem Daten. Es gibt keine Werbung, keine Käufe, keine Konten und keine Kommunikation mit anderen Personen über das Internet. Für den Unterricht genügen Spitznamen oder Teamnamen; es müssen keine Daten von Schülerinnen und Schülern eingegeben werden. Der Schulmodus blendet Bewerten, Weiterempfehlen und Feedback aus.</p>
 
-  <h2>8. Ihre Rechte</h2>
+  <h2>9. Ihre Rechte</h2>
   <p>Ihnen stehen die Rechte auf Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung, Datenübertragbarkeit und Widerspruch nach Art. 15 bis 21 DSGVO zu sowie ein Beschwerderecht bei einer Aufsichtsbehörde. Da beim Anbieter keine personenbezogenen Daten gespeichert werden, laufen Auskunfts- und Löschersuchen gegenüber dem Anbieter in der Regel ins Leere. Sie können alle Daten jederzeit selbst in der App löschen.</p>
 
-  <h2>9. Änderungen dieser Erklärung</h2>
+  <h2>10. Änderungen dieser Erklärung</h2>
   <p>Diese Erklärung wird angepasst, sobald sich Funktionen der App ändern, die für den Datenschutz erheblich sind. Die jeweils gültige Fassung ist in der App abrufbar.</p>
 
-  <h2>10. Kontakt</h2>
+  <h2>11. Kontakt</h2>
   <p>Bei Fragen zum Datenschutz wenden Sie sich bitte an <a href="mailto:smaehlmann.appdev@gmail.com">smaehlmann.appdev@gmail.com</a>.</p>
   <div class="links">
     <a class="back" href="index.html">Zurück</a>
@@ -95,32 +99,36 @@ PAGES = {
   <ul>
     <li>the player names you enter (any nicknames will do)</li>
     <li>the scores of the current game night</li>
-    <li>your own word lists</li>
+    <li>team names and scores</li>
+    <li>your own card sets, created by you or received from another device</li>
     <li>recently played words, so they don’t repeat too soon</li>
-    <li>settings for language, appearance, sounds, vibration, screen and game mode</li>
+    <li>settings for language, appearance, sounds, vibration, screen, game mode and school mode (including the school mode PIN you choose)</li>
   </ul>
   <p>This data is never transmitted and cannot be seen by the provider. You can delete it in the app under “Settings → Data on this device”; removing the app deletes everything. Please do not enter sensitive information about other people in your own lists.</p>
 
-  <h2>4. Internet connections</h2>
+  <h2>4. Camera and sharing card sets</h2>
+  <p>Your own card sets can be passed to other devices without a server: the sending device shows a QR code and the receiving device reads it with its camera. The camera is only opened when you choose “Scan QR code”; your device asks for permission first. The camera image is analysed on the device only and is never stored or transmitted. The same applies to a photo you choose via “Take a photo”. Alternatively, a card set can be passed on as text via your device’s share menu and pasted on the other device; you decide where to send the text (for example a messenger). A card set contains only the list name and the words – no player names and no scores.</p>
+
+  <h2>5. Internet connections</h2>
   <p>The app does not open any network connections on its own. It does not load fonts, libraries or content from third-party servers.</p>
   <p>The settings contain buttons that only open something when you tap them: “Rate” opens the app’s page in the app distribution service you got the app from. “Recommend” opens your device’s share menu with a short text and a link to the app. “Send feedback” opens your email app with a prepared message (app version, operating system version, language). You decide what you send; the app itself transmits nothing. An email to the provider is used only to reply to you (Art. 6(1)(f) GDPR) and deleted afterwards.</p>
 
-  <h2>5. Downloading through an app distribution service</h2>
+  <h2>6. Downloading through an app distribution service</h2>
   <p>When you download the app through an app distribution service, its operator processes data on its own responsibility (such as your account, device and time of download). The provider of this app has no influence on this. The operator’s privacy policy applies. The provider receives at most aggregated, non-personal statistics (such as the number of downloads).</p>
 
-  <h2>6. This website</h2>
+  <h2>7. This website</h2>
   <p>This policy and the app’s information page are also provided via GitHub Pages, a service of GitHub Inc., 88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, USA. When you open them in a browser, GitHub processes technically necessary connection data such as your IP address in order to deliver and secure the pages. The legal basis is Art. 6(1)(f) GDPR; the legitimate interest is the reliable provision of the pages. GitHub is certified under the EU-US Data Privacy Framework. Details: <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement">GitHub Privacy Statement</a>. The app itself does not retrieve anything from GitHub.</p>
 
-  <h2>7. Children</h2>
-  <p>SneakPlay is suitable for all ages but is not specifically aimed at children. The app collects no data from anyone. There is no advertising, no purchasing and no communication with other people over the internet.</p>
+  <h2>8. Children, young people and use in schools</h2>
+  <p>SneakPlay is suitable for all ages but is not specifically aimed at children. The app collects no data from anyone. There is no advertising, no purchasing, no accounts and no communication with other people over the internet. For lessons, nicknames or team names are enough; no pupil data needs to be entered. School mode hides rating, recommending and feedback.</p>
 
-  <h2>8. Your rights</h2>
+  <h2>9. Your rights</h2>
   <p>You have the rights of access, rectification, erasure, restriction of processing, data portability and objection under Art. 15 to 21 GDPR, as well as the right to lodge a complaint with a supervisory authority. As the provider stores no personal data, requests for access or erasure addressed to the provider will generally have nothing to act on. You can delete all data yourself in the app at any time.</p>
 
-  <h2>9. Changes to this policy</h2>
+  <h2>10. Changes to this policy</h2>
   <p>This policy will be updated whenever app features relevant to data protection change. The current version is always available in the app.</p>
 
-  <h2>10. Contact</h2>
+  <h2>11. Contact</h2>
   <p>For any questions about data protection, please write to <a href="mailto:smaehlmann.appdev@gmail.com">smaehlmann.appdev@gmail.com</a>.</p>
   <div class="links">
     <a class="back" href="index.html">Back</a>
@@ -206,6 +214,9 @@ LIB = """
     <li><b>cordova-plugin-statusbar</b> (Apache Software Foundation) – Apache License 2.0</li>
     <li><b>cordova-plugin-x-socialsharing</b> (Eddy Verbruggen) – MIT License</li>
     <li><b>cordova-plugin-insomnia</b> (Eddy Verbruggen) – MIT License</li>
+    <li><b>Permissions-Plugin für Cordova</b> (NeoLSN) – Kamera-Erlaubnis / camera permission – Apache License 2.0</li>
+    <li><b>jsQR</b> (Cosmo Wolfe) – QR-Erkennung / QR recognition – Apache License 2.0</li>
+    <li><b>QR Code generator library</b> (Project Nayuki) – Grundlage der QR-Erzeugung / basis of QR generation – MIT License</li>
   </ul>
 """
 MIT = """MIT License

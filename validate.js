@@ -27,7 +27,8 @@ const visible = html => html.replace(/<style[\s\S]*?<\/style>|<script[\s\S]*?<\/
 /* ---------- Dateien und Syntax ---------- */
 const index = R("www/index.html"), config = R("config.xml");
 const scripts = [...index.matchAll(/<script src="([^"]+)"/g)].map(m => m[1]).filter(s => s !== "cordova.js");
-const ORDER = ["core", "i18n", "content", "game", "app"];
+const ORDER = ["core", "i18n", "content", "decks", "game", "qr", "jsqr", "app"];
+const OWN = ORDER.filter(f => f !== "jsqr");
 ok(JSON.stringify(scripts) === JSON.stringify(ORDER.map(f => `js/${f}.js`)), "index.html bindet die Skripte in falscher Reihenfolge ein: " + scripts.join(", "));
 ok(index.indexOf('<script src="cordova.js"></script>') > index.indexOf("js/app.js"), "cordova.js muss nach den App-Skripten stehen");
 for (const s of scripts) {
@@ -36,12 +37,12 @@ for (const s of scripts) {
   catch (e) { ok(false, `Syntaxfehler in www/${s}:\n${e.stderr}`); }
 }
 ok(!/(src|href)="https?:\/\//.test(index), "index.html lädt nichts von fremden Servern");
-ok(/Content-Security-Policy/.test(index) && /connect-src 'self'/.test(index), "CSP fehlt oder erlaubt fremde Verbindungen");
+ok(/Content-Security-Policy/.test(index) && /connect-src 'self'/.test(index) && /mediastream:/.test(index), "CSP fehlt, erlaubt fremde Verbindungen oder nicht den Kamera-Stream");
 ok(!/color-mix\(/.test(index), "color-mix() gibt es erst ab iOS 16.2 – deployment-target ist 15.0");
-for (const f of ["icon-192.png", "datenschutz.html", "datenschutz-en.html", "impressum.html", "impressum-en.html", "lizenzen.html", "lizenzen-en.html"]) ok(exists("www/" + f), `www/${f} fehlt`);
+for (const f of ["icon-192.png", "js/jsqr-LICENSE.txt", "datenschutz.html", "datenschutz-en.html", "impressum.html", "impressum-en.html", "lizenzen.html", "lizenzen-en.html"]) ok(exists("www/" + f), `www/${f} fehlt`);
 ok(!exists("www/sw.js") && !exists("www/manifest.json"), "Webfassung-Reste gehören nicht in die App");
 /* Unsichtbare Sonderzeichen (z. B. U+2028) zerbrechen Regex und Strings */
-for (const s of scripts) ok(!/[\u2028\u2029\u200B\uFEFF]/.test(R("www/" + s)), `www/${s} enthält unsichtbare Sonderzeichen`);
+for (const f of OWN) ok(!/[\u2028\u2029\u200B\uFEFF]/.test(R(`www/js/${f}.js`)), `www/js/${f}.js enthält unsichtbare Sonderzeichen`);
 info(`${scripts.length} Skripte vorhanden, syntaktisch korrekt, richtige Reihenfolge`);
 
 /* ---------- Rechtstexte, Pages ---------- */
@@ -89,7 +90,11 @@ ok(/name="target-device" value="handset"/.test(config), "config.xml: target-devi
 ok(/name="Orientation" value="portrait"/.test(config), "config.xml: Hochformat fehlt");
 ok(/NSPhotoLibraryAddUsageDescription[\s\S]{0,200}<string>[^<]{30,}<\/string>/.test(config), "config.xml: Foto-Zweckangabe für das Teilen-Plugin fehlt");
 ok(/android\.permission\.VIBRATE/.test(config), "config.xml: VIBRATE fehlt");
-ok(!/android\.permission\.(CAMERA|RECORD_AUDIO|ACCESS_FINE_LOCATION)/.test(config), "config.xml fordert unnötige Berechtigungen an");
+ok(!/android\.permission\.(RECORD_AUDIO|ACCESS_FINE_LOCATION|ACCESS_COARSE_LOCATION|READ_CONTACTS)/.test(config), "config.xml fordert unnötige Berechtigungen an");
+ok(/android\.permission\.CAMERA/.test(config) && /android\.hardware\.camera" android:required="false"/.test(config), "config.xml: Kamera für den QR-Scanner (optional) fehlt");
+ok(/NSCameraUsageDescription[\s\S]{0,200}<string>[^<]{30,}<\/string>/.test(config), "config.xml: Kamera-Zweckangabe fehlt – iOS beendet die App beim ersten Scan");
+ok(/cordova-plugin-android-permissions/.test(config), "config.xml: Kamera-Erlaubnis unter Android (Plugin) fehlt");
+ok(/AllowInlineMediaPlayback" value="true"/.test(config), "config.xml: AllowInlineMediaPlayback fehlt – Kamerabild sonst im Vollbild-Player");
 ok(!/<access origin="\*"/.test(config.replace(/<!--[\s\S]*?-->/g, "")), "config.xml: <access origin=\"*\"> nicht erlaubt");
 const pm = R("res/ios/PrivacyInfo.xcprivacy");
 ok(/NSPrivacyTracking<\/key>\s*<false\/>/.test(pm) && /CA92\.1/.test(pm), "PrivacyInfo.xcprivacy unvollständig");
@@ -134,13 +139,14 @@ const sandbox = {
   setInterval: () => 0, clearInterval: () => {}, setTimeout: () => 0, clearTimeout: () => {},
   localStorage: { getItem: k => (k in memory ? memory[k] : null), setItem: (k, v) => { memory[k] = String(v); }, removeItem: k => { delete memory[k]; } },
   navigator: { language: "de-DE", languages: ["de-DE"], userAgent: "node" },
+  TextEncoder,
   crypto: { getRandomValues: a => { for (let i = 0; i < a.length; i++) a[i] = Math.floor(Math.random() * 4294967296); return a; } },
   document: { documentElement: { lang: "" }, getElementById: () => null }
 };
 sandbox.window = sandbox;
 vm.createContext(sandbox);
-for (const f of ["core", "i18n", "content", "game"]) vm.runInContext(R(`www/js/${f}.js`) + "\n;globalThis.__x = 1;", sandbox, { filename: f + ".js" });
-const G = vm.runInContext("({ I18N, CONTENT, CAT_ORDER, CAT_ICON, MODES, MIN_PLAYERS, assignImposter, pickFresh, pickManyFresh, tally, scoreImposter, scoreMissions, scoreBomb, bombPrompts, tickInterval, bombDuration, uniqueName, parseWords, cleanText, esc, BOMB_LEN })", sandbox);
+for (const f of ["core", "i18n", "content", "decks", "game", "qr"]) vm.runInContext(R(`www/js/${f}.js`) + "\n;globalThis.__x = 1;", sandbox, { filename: f + ".js" });
+const G = vm.runInContext("({ DECKS, DECK_GENERAL, DECK_MATH, DECK_ICON, SCHOOL_TOPICS, SCHOOL_MISSIONS, BOMB_MATH, MAX_PLAYERS, similarFor, explainPoints, parseCards, cardsToText, encodeSet, decodeSet, qrParts, parseQrPart, partCollector, QR, utf8Len, levelOk, I18N, CONTENT, CAT_ORDER, CAT_ICON, MODES, MIN_PLAYERS, assignImposter, pickFresh, pickManyFresh, tally, scoreImposter, scoreMissions, scoreBomb, bombPrompts, tickInterval, bombDuration, uniqueName, parseWords, cleanText, esc, BOMB_LEN })", sandbox);
 
 /* ---------- Übersetzungen ---------- */
 const LANGS = Object.keys(G.I18N);
@@ -149,19 +155,23 @@ const deKeys = Object.keys(G.I18N.de), enKeys = Object.keys(G.I18N.en);
 for (const k of deKeys) ok(k in G.I18N.en, `Übersetzung fehlt (en): ${k}`);
 for (const k of enKeys) ok(k in G.I18N.de, `Übersetzung fehlt (de): ${k}`);
 for (const k of deKeys) {
-  const vars = s => [...String(s).matchAll(/\{(\w+)\}/g)].map(m => m[1]).sort().join();
+  const vars = s => [...(typeof s === "object" ? s.one + s.other : String(s)).matchAll(/\{(\w+)\}/g)].map(m => m[1]).sort().join();
   ok(vars(G.I18N.de[k]) === vars(G.I18N.en[k]), `Platzhalter weichen ab bei ${k}`);
 }
 /* Benutzte Schlüssel: wörtliche t("…") und zusammengesetzte Familien */
 const used = new Set([...app.matchAll(/\bt\("([a-z][\w.]*)"/g)].map(m => m[1]).filter(k => !k.endsWith(".")));
 for (const m of app.matchAll(/t\([^()]*\?\s*"([\w.]+)"\s*:\s*"([\w.]+)"/g)) { used.add(m[1]); used.add(m[2]); }
+["cat", "similar", "none"].forEach(h => { used.add("opt.hint." + h); used.add("opt.hint." + h + ".s"); });
+[0, 1, 2, 3].forEach(i => used.add("team.default." + i));
 G.MODES.forEach(m => { used.add("mode." + m); used.add("mode." + m + ".sub"); used.add("rules." + m); used.add("rules." + m + ".score"); });
 used.add("timer.startTalk");
 const awardKeys = [...R("www/js/game.js").matchAll(/key: "(\w+)"/g)].map(m => m[1]);
 awardKeys.forEach(k => { used.add("aw." + k); used.add("aw." + k + ".text"); });
 for (const k of used) ok(k in G.I18N.de, `Benutzter Schlüssel fehlt in i18n.js: ${k}`);
 for (const k of deKeys) ok(used.has(k), `Unbenutzte Übersetzung: ${k}`);
-for (const l of LANGS) for (const [k, v] of Object.entries(G.I18N[l])) {
+for (const l of LANGS) for (const [k, v0] of Object.entries(G.I18N[l])) {
+  const v = typeof v0 === "object" ? v0.one + " " + v0.other : v0;
+  if (typeof v0 === "object") ok(typeof v0.one === "string" && typeof v0.other === "string", `${l}/${k}: Einzahl und Mehrzahl`);
   const m = String(v).match(FREMD);
   ok(!m, `Oberflächentext ${l}/${k} nennt „${m && m[0]}“`);
   const mk = String(v).match(MARKEN);
@@ -274,11 +284,78 @@ ok(G.cleanText("  x\u0000\u2028y  ", 10) === "x y", "cleanText entfernt Steuerze
 ok(G.esc(`<img src=x onerror="a">'`) === "&lt;img src=x onerror=&quot;a&quot;&gt;&#39;", "esc maskiert HTML");
 info("Spiellogik: Rollen, Zufall, Wiederholungen, Abstimmung und Wertung geprüft");
 
+/* ---------- Kartendecks, Schule, Mathe ---------- */
+for (const l of LANGS) {
+  const D = G.DECKS[l];
+  ok(JSON.stringify(Object.keys(D).sort()) === JSON.stringify(G.DECK_GENERAL.concat(G.DECK_MATH).sort()), `${l}: Decks weichen von DECK_GENERAL/DECK_MATH ab`);
+  let total = 0;
+  for (const id of Object.keys(D)) {
+    const d = D[id];
+    ok(d.name && G.DECK_ICON[id], `${l}/${id}: Name oder Symbol fehlt`);
+    ok(d.cards.length >= 16, `${l}/${id}: nur ${d.cards.length} Karten`);
+    ok(new Set(d.cards.map(c => c.w.toLowerCase())).size === d.cards.length, `${l}/${id}: doppelte Begriffe`);
+    if (G.DECK_MATH.includes(id)) ok(d.cards.filter(c => c.lv === 1).length >= 6, `${l}/${id}: zu wenige Karten für Klasse 5–6`);
+    for (const c of d.cards) {
+      const w = c.w.toLowerCase();
+      ok(c.f.length === 4 && new Set(c.f.map(x => x.toLowerCase())).size === 4, `${l}/${id}/${c.w}: genau 4 verschiedene verbotene Wörter (${c.f.join(", ")})`);
+      /* Teile des Begriffs dürfen verboten sein (Regenschirm → Regen), der Begriff selbst nicht */
+      ok(c.f.every(x => x && x.trim() === x && x.toLowerCase() !== w), `${l}/${id}/${c.w}: Begriff selbst steht in den verbotenen Wörtern`);
+      ok([1, 2, 3].includes(c.lv), `${l}/${id}/${c.w}: Niveau ${c.lv}`);
+      ok(!c.s || c.s.toLowerCase() !== w, `${l}/${id}/${c.w}: ähnlicher Begriff gleich dem Begriff`);
+      if (id === "ex_school" || G.DECK_MATH.includes(id)) ok(!!c.s, `${l}/${id}/${c.w}: ähnlicher Begriff fehlt`);
+      const all = [c.w, ...c.f, c.s].join(" ");
+      const m = all.match(BLOCK) || all.match(FREMD) || all.match(MARKEN);
+      ok(!m, `${l}/${id}/${c.w}: unzulässiger Inhalt „${m && m[0]}“`);
+    }
+    total += d.cards.length;
+  }
+  ok(total >= 170, `${l}: nur ${total} Erklär-Karten`);
+  ok(G.SCHOOL_TOPICS[l].length >= 15 && new Set(G.SCHOOL_TOPICS[l]).size === G.SCHOOL_TOPICS[l].length, `${l}: Schul-Themen`);
+  ok(G.SCHOOL_MISSIONS[l].length >= G.MAX_PLAYERS && new Set(G.SCHOOL_MISSIONS[l]).size === G.SCHOOL_MISSIONS[l].length, `${l}: Schul-Missionen reichen nicht für ${G.MAX_PLAYERS} Spieler`);
+  ok(G.CONTENT[l].missions.length >= G.MAX_PLAYERS, `${l}: Missionen reichen nicht für ${G.MAX_PLAYERS} Spieler`);
+  ok(G.BOMB_MATH[l].length >= 30 && G.BOMB_MATH[l].filter(([, v]) => v === 1).length >= 15, `${l}: Mathe-Bomben-Aufgaben`);
+  [...G.SCHOOL_TOPICS[l], ...G.SCHOOL_MISSIONS[l], ...G.BOMB_MATH[l].map(x => x[0])].forEach(x => { const m = x.match(BLOCK) || x.match(FREMD) || x.match(MARKEN); ok(!m, `${l}: unzulässiger Inhalt „${x}“`); });
+}
+info("Erklär- und Mathe-Decks: je 4 verbotene Wörter, Niveaus, ähnliche Begriffe, Schul-Inhalte vollständig");
+
+/* ---------- Eigene Karten und Austausch ---------- */
+{
+  const c = G.parseCards("Parallelogramm: Viereck, parallel, Seiten, schief, Parallelogramm\nPrimzahl: Teiler;teilbar\nA, B, a\n\n  C  ");
+  ok(c.length === 5 && c[0].f.length === 4 && c[1].f.join() === "Teiler,teilbar" && c.map(x => x.w).join() === "Parallelogramm,Primzahl,A,B,C", "parseCards: Begriffe, verbotene Wörter, Doppelte: " + JSON.stringify(c));
+  ok(G.parseCards(G.cardsToText(c)).length === 5, "cardsToText ↔ parseCards");
+  const set = { name: "Ünïcödé | Test", cards: Array.from({ length: 120 }, (_, i) => ({ w: "Begriff Nr. " + i + " äöüß😀", f: ["eins", "zwei|drei", "vier"] })) };
+  const enc = G.encodeSet(set);
+  const dec = G.decodeSet("Hier ist ein Set:\n" + enc + "\n");
+  ok(dec && dec.cards.length === 120 && dec.cards[5].f.length === 3 && dec.name === "Ünïcödé / Test", "encodeSet/decodeSet mit Sonderzeichen und Text drumherum");
+  ok(G.decodeSet("SneakPlay-Karten v1\nX\nA") === null, "decodeSet lehnt zu kleine Sets ab");
+  const parts = G.qrParts(enc);
+  ok(parts.length > 1 && parts.every(p => G.utf8Len(p) <= 600), `qrParts zerlegt in lesbare Teile (${parts.length})`);
+  const col = G.partCollector();
+  let full = null;
+  for (const p of parts.slice().reverse().concat(parts[0])) { const r = col.add(G.parseQrPart(p)); if (r) full = r; }
+  ok(full === enc, "Teile in beliebiger Reihenfolge ergeben wieder das Set");
+  ok(G.parseQrPart("SPQ|ab|1|2|x") === null && G.parseQrPart("http://x") === null, "fremde QR-Codes werden erkannt");
+  for (const p of parts) { const q = G.QR.encode(p); if (q.version > 27) { ok(false, `QR-Teil braucht Version ${q.version} – zu dicht für Beamer`); break; } }
+  ok(G.QR.encode(parts[0]).size > 21, "QR-Codierung funktioniert");
+}
+/* Ähnlicher Begriff und Erklär-Wertung */
+{
+  const pool = [{ cat: "a", word: "X", s: "Y" }, { cat: "a", word: "Z", s: "" }, { cat: "b", word: "Q", s: "" }];
+  ok(G.similarFor(pool[0], pool) === "Y", "similarFor nimmt den hinterlegten Begriff");
+  ok(G.similarFor(pool[1], pool) === "X", "similarFor nimmt sonst einen aus derselben Kategorie");
+  ok(G.similarFor(pool[2], pool) === "", "similarFor ohne Partner liefert nichts");
+  const log = [{ res: "ok" }, { res: "ok" }, { res: "taboo" }, { res: "skip" }];
+  ok(G.explainPoints(log, true) === 1 && G.explainPoints(log, false) === 2, "Erklär-Punkte mit und ohne Abzug");
+  ok(G.scoreBomb(3, 1).delta.join() === "1,0,1", "Wort-Bombe mit Teams");
+  ok(G.levelOk(1, 1) && !G.levelOk(3, 2) && G.levelOk(undefined, 1), "Niveau-Filter");
+}
+info("Eigene Karten, Text- und QR-Austausch, ähnlicher Begriff, Erklär-Wertung geprüft");
+
 /* ---------- Nutzertext nur über esc() ---------- */
 {
   /* Grobe Prüfung: ${…} in HTML-Vorlagen muss esc(), names(), eine Zahl,
      ein Symbol oder ein bekannter Baustein sein. */
-  const SAFE = /^(esc\(|!!on|disabled|withAbort|MODES\.|fmtTime|b\.|l\b|String\(|act\b|disabledFn|options\.|buttons\.|\[\[|names\(|t\("|i \+ 1|n\b|k \* 90|MODE_ICON|CAT_ICON|R\.icon|a\.icon|i\b|g\b|k\b|s\b|d\b|MAX_|MIN_|LANG|legalUrl|topbar|backbar|langSwitch|seg\(|sw\(|timerCard|modeOptions|catChips|scoreCard|countsLine|head|body|sec|first|why|rate|share|l\.words\.length|R\.counts|c\b|v\b|f\b|id\b|o\.|dark|light|i === |k === |R\.|guessers|holders|n \?|st ===|parts|rows|r\.awards|order|L\.length|P\.map|builtIn|a\.who|imps|clue|topic|ready|\(|"|')/;
+  const SAFE = /^(esc\(|x\.res|sample\b|set\.cards\.length|mathOn|school\(\)|T\.|teamMode|extraHtml|max\b|TEAM_COLORS|on\b|deckIcon|general\.map|withSchoolMath|customChips|chip\(|dot\(|levelSeg|playersCard|teamsCard|exScoreboard|awardRows|scoreTable|c\.icon|c\.f|pts|tm\b|sch\b|!!on|disabled|withAbort|MODES\.|fmtTime|b\.|l\b|String\(|act\b|disabledFn|options\.|buttons\.|\[\[|names\(|t\("|i \+ 1|n\b|k \* 90|MODE_ICON|CAT_ICON|R\.icon|a\.icon|i\b|g\b|k\b|s\b|d\b|MAX_|MIN_|LANG|legalUrl|topbar|backbar|langSwitch|seg\(|sw\(|timerCard|modeOptions|catChips|scoreCard|countsLine|head|body|sec|first|why|rate|share|l\.words\.length|R\.counts|c\b|v\b|f\b|id\b|o\.|dark|light|i === |k === |R\.|guessers|holders|n \?|st ===|parts|rows|r\.awards|order|L\.length|P\.map|builtIn|a\.who|imps|clue|topic|ready|\(|"|')/;
   const bad = [];
   for (const m of app.matchAll(/\$\{([^}]{0,60})/g)) if (!SAFE.test(m[1].trim())) bad.push(m[1].trim());
   ok(bad.length === 0, "Vorlagen ohne esc(): " + bad.slice(0, 8).join(" | "));

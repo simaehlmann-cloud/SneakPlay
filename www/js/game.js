@@ -4,9 +4,9 @@
    Sandbox und prüft sie mit vielen Zufallsrunden. */
 "use strict";
 
-const MODES = ["imposter", "missions", "bomb"];
-const MODE_ICON = { imposter: "🎭", missions: "🎯", bomb: "💣" };
-const MIN_PLAYERS = { imposter: 3, missions: 3, bomb: 2 };
+const MODES = ["imposter", "missions", "explain", "bomb"];
+const MODE_ICON = { imposter: "🎭", missions: "🎯", explain: "🗣️", bomb: "💣" };
+const MIN_PLAYERS = { imposter: 3, missions: 3, explain: 0, bomb: 2 };
 const MIN_TWO_IMPOSTERS = 6;
 const MIN_CLUELESS = 5;
 const USED_MAX = 600;
@@ -120,7 +120,7 @@ function scoreMissions(st) {
 }
 
 /* Wertung Wort-Bombe: alle außer der Person mit der Bombe +1 */
-function scoreBomb(n, loser) {
+function scoreBomb(n, loser) {  // n Spieler oder Teams
   const d = range(n).map(i => (i === loser ? 0 : 1));
   return { delta: d, awards: [{ icon: "💥", key: "boom", who: [loser] }, { icon: "😎", key: "survivors", who: range(n).filter(i => i !== loser) }] };
 }
@@ -151,4 +151,110 @@ function parseWords(text) {
     if (c && !seen.has(k)) { seen.add(k); out.push(c); }
   });
   return out.slice(0, 300);
+}
+
+/* =====================================================================
+   Teams, Niveau, ähnlicher Begriff
+   ===================================================================== */
+const TEAM_COLORS = ["#FF5D8F", "#6EA8FF", "#3DDC97", "#FFD25D"];
+const MIN_TEAMS = 2, MAX_TEAMS = 4;
+function levelOk(lv, max) { return (lv || 1) <= (max || 3); }
+
+/* Begriff für den Hochstapler in der Variante „Ähnlicher Begriff“:
+   der hinterlegte verwandte Begriff, sonst ein anderer aus derselben Kategorie */
+function similarFor(item, pool) {
+  if (item.s && item.s.toLowerCase() !== item.word.toLowerCase()) return item.s;
+  const same = pool.filter(x => x.cat === item.cat && x.word.toLowerCase() !== item.word.toLowerCase());
+  return same.length ? pick(same).word : "";
+}
+
+/* Erklär-Modus: Punkte eines Durchgangs. res: "ok" | "taboo" | "skip" */
+function explainPoints(log, penalty) {
+  return log.reduce((s, x) => s + (x.res === "ok" ? 1 : x.res === "taboo" && penalty ? -1 : 0), 0);
+}
+
+/* =====================================================================
+   Eigene Karten: Eingabe, Text- und QR-Austausch (ohne Server)
+   ===================================================================== */
+const CARD_MAX = 300, FORBID_MAX = 6;
+function cleanField(s, max) { return cleanText(String(s == null ? "" : s).replace(/[|]/g, "/"), max); }
+
+/* Pro Zeile „Begriff“ oder „Begriff: verboten, verboten, …“.
+   Zeilen ohne Doppelpunkt dürfen mehrere Begriffe mit Komma enthalten. */
+function parseCards(text) {
+  const seen = new Set(), out = [];
+  const add = (w, f) => {
+    const c = cleanField(w, 40), k = c.toLowerCase();
+    if (!c || seen.has(k) || out.length >= CARD_MAX) return;
+    seen.add(k);
+    const fs = [], fk = new Set([k]);
+    (f || []).forEach(x => { const v = cleanField(x, 30), vk = v.toLowerCase(); if (v && !fk.has(vk) && fs.length < FORBID_MAX) { fk.add(vk); fs.push(v); } });
+    out.push({ w: c, f: fs });
+  };
+  String(text || "").split(/\r?\n/).forEach(line => {
+    const i = line.indexOf(":");
+    if (i > 0) add(line.slice(0, i), line.slice(i + 1).split(/[,;]/));
+    else line.split(/[,;]/).forEach(w => add(w));
+  });
+  return out;
+}
+function cardsToText(cards) { return cards.map(c => c.f.length ? c.w + ": " + c.f.join(", ") : c.w).join("\n"); }
+
+const SHARE_HEAD = "SneakPlay-Karten v1";
+function encodeSet(set) {
+  return [SHARE_HEAD, cleanField(set.name, 24)].concat(set.cards.map(c => [c.w].concat(c.f).map(x => cleanField(x, 40)).join("|"))).join("\n");
+}
+/* Liefert {name, cards} oder null. Toleriert Text drumherum (z. B. aus einem Messenger). */
+function decodeSet(text) {
+  const s = String(text || "").replace(/\r/g, "");
+  const i = s.indexOf(SHARE_HEAD);
+  if (i < 0) return null;
+  const lines = s.slice(i).split("\n");
+  const name = cleanField(lines[1] || "", 24);
+  const seen = new Set(), cards = [];
+  for (const ln of lines.slice(2)) {
+    const parts = ln.split("|").map(x => cleanField(x, 40));
+    const w = parts[0], k = (w || "").toLowerCase();
+    if (!w || seen.has(k)) continue;
+    seen.add(k);
+    cards.push({ w, f: parts.slice(1).map(x => x.slice(0, 30)).filter(x => x && x.toLowerCase() !== k).slice(0, FORBID_MAX) });
+    if (cards.length >= CARD_MAX) break;
+  }
+  return name && cards.length >= 3 ? { name, cards } : null;
+}
+
+/* Große Sets passen nicht in einen gut lesbaren QR-Code: in Teile zerlegen.
+   Jeder Teil: SPQ|kennung|nr|anzahl|daten */
+const QR_PART_BYTES = 560;
+function utf8Len(s) { return new TextEncoder().encode(s).length; }
+function qrParts(text) {
+  const chunks = [];
+  let cur = "", curLen = 0;
+  for (const ch of text) {
+    const l = utf8Len(ch);
+    if (curLen + l > QR_PART_BYTES) { chunks.push(cur); cur = ""; curLen = 0; }
+    cur += ch; curLen += l;
+  }
+  if (cur || !chunks.length) chunks.push(cur);
+  const id = range(4).map(() => "0123456789abcdefghijklmnopqrstuvwxyz"[rnd(36)]).join("");
+  return chunks.map((c, i) => `SPQ|${id}|${i + 1}|${chunks.length}|${c}`);
+}
+function parseQrPart(s) {
+  const m = /^SPQ\|([0-9a-z]{4})\|(\d{1,2})\|(\d{1,2})\|([\s\S]*)$/.exec(String(s || ""));
+  if (!m) return null;
+  const i = +m[2], n = +m[3];
+  return i >= 1 && n >= 1 && i <= n && n <= 40 ? { id: m[1], i, n, data: m[4] } : null;
+}
+/* Sammler für gescannte Teile; liefert den Gesamttext, sobald alle da sind */
+function partCollector() {
+  let id = null, n = 0, got = {};
+  return {
+    add(p) {
+      if (p.id !== id) { id = p.id; n = p.n; got = {}; }
+      got[p.i] = p.data;
+      return this.done() ? range(n).map(k => got[k + 1]).join("") : null;
+    },
+    done() { return n > 0 && range(n).every(k => got[k + 1] != null); },
+    progress() { return { have: Object.keys(got).length, n }; }
+  };
 }

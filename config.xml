@@ -11,7 +11,7 @@
         xmlns:cdv="http://cordova.apache.org/ns/1.0">
 
     <name>SneakPlay</name>
-    <description>Das Partyspiel für ein Handy: Bluffen, geheime Missionen und die tickende Wort-Bombe. Handy reihum weiterreichen und loslegen – offline, ohne Konto, ohne Werbung, ohne Tracking. Deutsch und Englisch.</description>
+    <description>Das Partyspiel für ein Handy – für Spieleabende und den Unterricht: Bluffen, geheime Missionen, Begriffe erklären und die tickende Wort-Bombe. Handy reihum weiterreichen und loslegen – offline, ohne Konto, ohne Werbung, ohne Tracking. Deutsch und Englisch.</description>
     <author email="smaehlmann.appdev@gmail.com">Wisdompeak Apps – Simon Mählmann</author>
 
     <content src="index.html" />
@@ -29,6 +29,9 @@
     <!-- Pass & Play: Das Handy wandert von Hand zu Hand – hochkant. -->
     <preference name="Orientation" value="portrait" />
     <preference name="BackgroundColor" value="0xff17122f" />
+    <!-- QR-Scanner: Kamerabild im WebView statt Vollbild-Player -->
+    <preference name="AllowInlineMediaPlayback" value="true" />
+    <preference name="MediaTypesRequiringUserActionForPlayback" value="none" />
 
     <platform name="ios">
         <preference name="deployment-target" value="15.0" />
@@ -45,6 +48,10 @@
         <!-- Das Teilen-Plugin trägt diese Schlüssel mit leerem Text ein; leere
              Zweckangaben lehnt die Prüfung ab. SneakPlay teilt nur einen Text
              mit Link, die Mediathek wird nie gelesen. -->
+        <!-- Pflicht: Ohne Zweckangabe beendet iOS die App beim ersten Kamerazugriff. -->
+        <edit-config target="NSCameraUsageDescription" file="*-Info.plist" mode="overwrite">
+            <string>SneakPlay nutzt die Kamera nur, um QR-Codes mit Kartensets anderer Geräte zu lesen. Bilder werden weder gespeichert noch gesendet. / SneakPlay uses the camera only to read QR codes with card sets from other devices. Images are never stored or sent.</string>
+        </edit-config>
         <edit-config target="NSPhotoLibraryAddUsageDescription" file="*-Info.plist" mode="overwrite">
             <string>SneakPlay speichert nichts in deiner Fotomediathek. Diese Angabe ist nur für das Teilen-Menü des Systems nötig. / SneakPlay never saves to your photo library. This entry is only needed for the system share menu.</string>
         </edit-config>
@@ -81,6 +88,9 @@
              WebView navigator.vibrate(). -->
         <config-file target="AndroidManifest.xml" parent="/manifest">
             <uses-permission android:name="android.permission.VIBRATE" />
+            <!-- QR-Scanner für Kartensets; Geräte ohne Kamera bleiben installierbar -->
+            <uses-permission android:name="android.permission.CAMERA" />
+            <uses-feature android:name="android.hardware.camera" android:required="false" />
         </config-file>
 
         <resource-file src="res/android/colors.xml" target="/app/src/main/res/values/sneakplay_colors.xml" />
@@ -98,4 +108,6 @@
     <plugin name="cordova-plugin-x-socialsharing" spec="^6.0.4" />
     <!-- Bildschirm bleibt während einer Runde an (Timer, Wort-Bombe) -->
     <plugin name="cordova-plugin-insomnia" spec="^4.3.0" />
+    <!-- Kamera-Erlaubnis unter Android zur Laufzeit abfragen (QR-Scanner) -->
+    <plugin name="cordova-plugin-android-permissions" spec="^1.1.5" />
 </widget>

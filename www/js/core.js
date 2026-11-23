@@ -3,7 +3,7 @@
 "use strict";
 
 const APP_VERSION = "1.0.0";
-const MAX_PLAYERS = 12;
+const MAX_PLAYERS = 16;
 const MAX_NAME = 16;
 
 function inApp() { return !!window.cordova; }

@@ -21,7 +21,7 @@ const NAMES = { de: ["Anna", "Ben", "Cleo", "Dana", "Emil", "Finn"], en: ["Amy",
       const ctx = await browser.newContext({ viewport: vp, deviceScaleFactor: 3, locale: lang });
       await ctx.addInitScript(() => { window.__SNEAKPLAY_TEST__ = true; });
       const page = await ctx.newPage();
-      const shot = async n => { await page.waitForTimeout(450); await page.screenshot({ path: path.join(OUT, `${target}-${lang}-${n}.png`) }); };
+      const shot = async n => { await page.waitForTimeout(500); await page.screenshot({ path: path.join(OUT, `${target}-${lang}-${n}.png`) }); };
       const act = (a, v) => page.click(v == null ? `[data-act="${a}"]` : `[data-act="${a}"][data-v="${v}"]`);
       await page.goto(ROOT + "/www/index.html");
       await page.evaluate(([lang, names]) => {
@@ -42,6 +42,15 @@ const NAMES = { de: ["Anna", "Ben", "Cleo", "Dana", "Emil", "Finn"], en: ["Amy",
       await hold(); await shot(2); await page.mouse.up(); await page.click("#nextBtn");
       await hold(); await shot(3); await page.mouse.up();          // Hochstapler-Karte
 
+      /* Erklär’s! mit Mathe-Karte */
+      await page.evaluate(() => goHome());
+      await page.evaluate(() => { localStorage.setItem("sneakplay.exp", JSON.stringify({ decks: ["m_space"], time: 60, rounds: 3, penalty: true })); localStorage.setItem("sneakplay.level", "2"); });
+      await act("mode", "explain");
+      await act("start");
+      await act("exGo");
+      await page.evaluate(() => { R.card = R.pool.find(c => /Parallelogra/.test(c.w)) || R.card; R.log = [{ w: "x", res: "ok" }, { w: "y", res: "ok" }]; screenExplain(); TIMER.pause(); TIMER.left = 37000; TIMER.onTick(37000); });
+      await shot("3b");
+
       /* Missionen */
       await page.evaluate(() => goHome());
       await act("mode", "missions");
@@ -49,9 +58,10 @@ const NAMES = { de: ["Anna", "Ben", "Cleo", "Dana", "Emil", "Finn"], en: ["Amy",
       await page.evaluate(() => { R.none = 3; });
       await hold(); await shot(4); await page.mouse.up();
 
-      /* Wort-Bombe */
+      /* Wort-Bombe mit Mathe-Aufgaben */
       await page.evaluate(() => goHome());
       await act("mode", "bomb");
+      await act("bombSrc", "math");
       await act("start");
       await page.evaluate(() => { BOMB_LEN.mid = [60, 60]; });
       await act("bombGo");
@@ -67,6 +77,16 @@ const NAMES = { de: ["Anna", "Ben", "Cleo", "Dana", "Emil", "Finn"], en: ["Amy",
         finishRound();
       });
       await shot(6);
+
+      /* Eigene Karten per QR-Code teilen */
+      await page.evaluate(lang => {
+        const cards = lang === "de"
+          ? "Bruchrechnung: Zähler, Nenner, kürzen, erweitern\nKehrwert: umdrehen, Bruch, Zähler, Nenner\nDreisatz: drei, Schritte, Zuordnung, eins"
+          : "Fraction: numerator, denominator, simplify, part\nReciprocal: flip, fraction, numerator, denominator\nRatio: compare, parts, colon, share";
+        const l = storeList(null, lang === "de" ? "Mathe 7b" : "Maths 7B", parseCards(cards));
+        screenShare(l.id);
+      }, lang);
+      await shot(7);
       await ctx.close();
     }
   }

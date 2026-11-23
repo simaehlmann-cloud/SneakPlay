@@ -47,7 +47,8 @@ const ok = (c, m) => { if (c) console.log("✓ " + m); else { fehler++; console.
   };
   const noOverflow = async label => {
     const w = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
-    ok(w <= 0, `${label}: kein waagerechtes Scrollen (${w}px)`);
+    const who = w > 0 ? await page.evaluate(() => [...document.querySelectorAll("#view *")].filter(e => e.getBoundingClientRect().right > innerWidth + 0.5).slice(-3).map(e => e.tagName + "." + e.className + ": " + (e.textContent || "").trim().slice(0, 40)).join(" | ")) : "";
+    ok(w <= 0, `${label}: kein waagerechtes Scrollen (${w}px) ${who}`);
   };
 
   /* ---------- Startseite ---------- */
@@ -63,7 +64,7 @@ const ok = (c, m) => { if (c) console.log("✓ " + m); else { fehler++; console.
   await act("pup", 1);
   ok((await text(".plist li:first-child .pn")) === "Spieler 2", "Spieler nach oben verschieben");
   await act("rename", 0);
-  await page.fill("#renIn", "Anna");
+  await page.fill("#dlgIn", "Anna");
   await page.click(".dlg .btn.primary");
   ok((await text(".plist li:first-child .pn")) === "Anna", "Spieler umbenennen");
   await setPlayers(["Anna", "Ben", "Cleo", "Dana", "Emil", "Finn"]);
@@ -71,8 +72,9 @@ const ok = (c, m) => { if (c) console.log("✓ " + m); else { fehler++; console.
   await page.press("#nameIn", "Enter");
   ok(await page.evaluate(() => !window.__xss) && (await page.$$(".plist img")).length === 0, "Eingegebene Namen werden nicht als HTML ausgeführt");
   await act("prm", 6);
-  for (let k = 0; k < 6; k++) { await page.fill("#nameIn", "X" + k); await page.press("#nameIn", "Enter"); }
-  ok((await page.$$(".plist li")).length === 12 && await page.isDisabled("#nameIn"), "Höchstens 12 Spieler");
+  const maxP = await page.evaluate(() => MAX_PLAYERS);
+  for (let k = 6; k < maxP; k++) { await page.fill("#nameIn", "X" + k); await page.press("#nameIn", "Enter"); }
+  ok((await page.$$(".plist li")).length === maxP && await page.isDisabled("#nameIn"), `Höchstens ${maxP} Spieler`);
   await setPlayers(["Anna", "Ben", "Cleo", "Dana", "Emil", "Finn"]);
   await noOverflow("Startseite");
 
@@ -205,7 +207,7 @@ const ok = (c, m) => { if (c) console.log("✓ " + m); else { fehler++; console.
   await act("listEdit", "");
   await page.fill("#lName", "Verein");
   await page.fill("#lWords", "Vereinsheim, Sommerfest\nTrainingslager\nvereinsheim");
-  ok(/3 Begriffe/.test(await text("#lCount")), "Doppelte Begriffe werden zusammengefasst");
+  ok(/^3 Karten/.test(await text("#lCount")), "Doppelte Begriffe werden zusammengefasst");
   await page.click('[data-act="listSave"]');
   await act("home");
   ok(await page.isVisible("text=✏️ Verein"), "Eigene Liste erscheint und ist gewählt");
@@ -241,7 +243,170 @@ const ok = (c, m) => { if (c) console.log("✓ " + m); else { fehler++; console.
   cards = await revealAll(4);
   ok(cards.some(c => c.includes("Your secret word")), "Englische Karten");
   const enWord = await page.evaluate(() => R.word);
-  ok(await page.evaluate(w => CONTENT.en.cats.animals.words.includes(w) || CONTENT.en.cats.food.words.includes(w) || CONTENT.en.cats.everyday.words.includes(w) || lists().some(l => l.words.includes(w)), enWord), "Englischer Begriff aus englischer Liste");
+  ok(await page.evaluate(w => CONTENT.en.cats.animals.words.includes(w) || CONTENT.en.cats.food.words.includes(w) || CONTENT.en.cats.everyday.words.includes(w) || lists().some(l => l.cards.some(c => c.w === w)), enWord), "Englischer Begriff aus englischer Liste");
+
+
+  /* ---------- Hochstapler: ähnlicher Begriff, Mathe-Kategorie mit Niveau ---------- */
+  await page.evaluate(() => goHome());
+  await act("lang", "de");
+  await act("mode", "imposter");
+  while (await page.$('[data-act="cat"][aria-checked="true"]')) await page.click('[data-act="cat"][aria-checked="true"]');
+  await act("cat", "m_space");
+  ok(await page.isVisible('[data-act="level"]'), "Niveau-Auswahl erscheint bei Mathe-Kategorien");
+  await act("level", 1);
+  await act("hint", "similar");
+  await act("start");
+  const simR = await page.evaluate(() => ({ word: R.word, alt: R.alt, role: R.role, lv: DECKS.de.m_space.cards.find(c => c.w === R.word).lv }));
+  ok(simR.lv === 1, `Niveau Kl. 5–6: nur leichte Begriffe (${simR.word})`);
+  ok(simR.alt && simR.alt !== simR.word, `Ähnlicher Begriff für den Hochstapler (${simR.word} → ${simR.alt})`);
+  cards = await revealAll(4);
+  const impIdx = simR.role.indexOf("imp");
+  ok(cards[impIdx].includes(simR.alt) && cards[impIdx].includes("Euer geheimer Begriff") && !cards[impIdx].includes("Hochstapler"), "Hochstapler-Karte sieht aus wie die der anderen");
+  await act("tovote"); await act("accuse", (impIdx + 1) % 4); await act("reveal");
+  ok(await page.isVisible(`text=Der Hochstapler hatte: ${simR.alt}`), "Auflösung nennt den ähnlichen Begriff");
+  await page.evaluate(() => goHome());
+  await act("hint", "cat");
+
+  /* ---------- Erklär’s! mit Teams ---------- */
+  await act("mode", "explain");
+  ok(await page.isVisible("text=Team Rot") && await page.isVisible("text=Team Blau"), "Zwei Standard-Teams");
+  await act("tadd");
+  ok(await page.isVisible("text=Team Grün"), "Team hinzufügen");
+  await act("trm", 2);
+  await act("trename", 0);
+  await page.fill("#dlgIn", "Füchse");
+  await page.click(".dlg .btn.primary");
+  ok(await page.isVisible("text=Füchse"), "Team umbenennen");
+  while (await page.$('[data-act="deck"][aria-checked="true"]')) await page.click('[data-act="deck"][aria-checked="true"]');
+  ok(await page.isDisabled('[data-act="start"]'), "Ohne Kartenset kein Start");
+  await act("deck", "m_numbers");
+  await act("level", 1);
+  await act("exRounds", 1);
+  await act("start");
+  ok(await page.evaluate(() => R.pool.length > 5 && R.pool.every(c => DECKS.de.m_numbers.cards.find(x => x.w === c.w).lv === 1)), "Erklär-Karten nach Niveau gefiltert");
+  ok(await page.isVisible("text=Füchse ist dran"), "Erstes Team ist dran");
+  await act("exGo");
+  ok((await page.$$(".forbid li")).length === 4, "Karte zeigt 4 verbotene Wörter");
+  const w1 = await text(".excard .w");
+  await act("exRes", "ok");
+  ok((await text(".excard .w")) !== w1, "Nächste Karte nach „Erraten“");
+  await act("exRes", "taboo");
+  await act("exRes", "ok");
+  await page.evaluate(() => onHidden());
+  ok(await page.isVisible('[data-act="exResume"]'), "Erklär-Uhr pausiert beim App-Wechsel");
+  await act("exResume");
+  await page.evaluate(() => { TIMER.left = 50; TIMER.startedAt = performance.now(); });
+  await page.waitForTimeout(400);
+  ok(await page.isVisible("text=Ergebnisse prüfen"), "Zeit um → Ergebnisse prüfen");
+  ok(/1 Punkt in/.test(await text(".big-h + p")), "2 erraten, 1 verboten = 1 Punkt");
+  await act("exFix", "1:skip");
+  ok(/2 Punkte/.test(await text(".big-h + p")), "Korrektur ändert die Punkte");
+  await act("exNext");
+  ok(await page.isVisible("text=Team Blau ist dran"), "Dann das nächste Team");
+  await act("exGo");
+  await act("exRes", "skip");
+  await page.evaluate(() => { TIMER.left = 50; TIMER.startedAt = performance.now(); });
+  await page.waitForTimeout(400);
+  await act("exNext");
+  ok(await page.isVisible("text=Füchse gewinnt"), "Sieger nach dem letzten Durchgang");
+  ok(await page.evaluate(() => JSON.parse(localStorage.getItem("sneakplay.teamScores")).Füchse === 2), "Team-Punkte gespeichert");
+  await act("home");
+
+  /* ---------- Wort-Bombe: Mathe-Aufgaben in Teams ---------- */
+  await act("mode", "bomb");
+  await act("bombSrc", "math");
+  await act("bombTeams");
+  await act("fuse", "short");
+  await page.evaluate(() => { BOMB_LEN.short = [1, 1]; });
+  await act("start");
+  ok(await page.evaluate(() => BOMB_MATH.de.some(([p]) => p === R.prompt)), "Mathe-Aufgabe für die Bombe");
+  await act("bombGo");
+  await page.waitForTimeout(1500);
+  ok((await page.$$('[data-act="bombLoser"]')).length === 2, "Bombe fragt nach dem Team");
+  await act("bombLoser", 1);
+  await act("finish");
+  ok(await page.evaluate(() => JSON.parse(localStorage.getItem("sneakplay.teamScores")).Füchse === 3), "Bomben-Punkte gehen an die Teams");
+  await act("home");
+  await act("bombTeams");
+  await act("bombSrc", "general");
+
+  /* ---------- Eigene Karten mit verbotenen Wörtern teilen (QR und Text) ---------- */
+  await act("settings"); await act("home");
+  await page.evaluate(() => screenLists());
+  await act("listEdit", "");
+  await page.fill("#lName", "Mathe 7b");
+  const big = Array.from({ length: 40 }, (_, i) => `Begriff ${i}: verboten ${i}a, verboten ${i}b, verboten ${i}c, äöü`).join("\n");
+  await page.fill("#lWords", big);
+  ok(/40 Karten, davon 40/.test(await text("#lCount")), "Editor zählt Karten mit verbotenen Wörtern");
+  await page.click('[data-act="listSave"]');
+  const sid = await page.evaluate(() => lists().find(l => l.name === "Mathe 7b").id);
+  await act("listShare", sid);
+  ok(await page.isVisible(".qrbox canvas") && /Teil 1 von/.test(await text("#qrpart")), "Mehrteiliger QR-Code wird angezeigt");
+  /* QR-Codes vom Bildschirm lesen wie ein zweites Gerät */
+  const scanned = await page.evaluate(async () => {
+    const got = new Set(); const out = [];
+    for (let k = 0; k < 30 && (out.length === 0 || got.size < out[0].n); k++) {
+      const cv = document.querySelector(".qrbox canvas");
+      const d = cv.getContext("2d").getImageData(0, 0, cv.width, cv.height);
+      const r = jsQR(d.data, d.width, d.height);
+      if (r && !got.has(r.data)) { got.add(r.data); out.push(Object.assign(parseQrPart(r.data), { raw: r.data })); }
+      document.getElementById("qrNext").click();
+    }
+    return out.map(p => p.raw);
+  });
+  ok(scanned.length >= 2, `Alle QR-Teile lesbar (${scanned.length})`);
+  await page.evaluate(() => screenScan());
+  for (const raw of scanned) await page.evaluate(r => handleScanned(r, document.getElementById("scanStatus")), raw);
+  ok(await page.isVisible("text=Kartenset übernehmen?") && await page.isVisible("text=40 Karten"), "Gescanntes Set wird zur Übernahme angeboten");
+  await page.click(".dlg .btn.primary");
+  ok(await page.evaluate(() => lists().filter(l => l.name.startsWith("Mathe 7b")).length === 2), "Gescanntes Set gespeichert (Name eindeutig)");
+  const txt = await page.evaluate(id => "Schau mal:\n" + encodeSet(lists().find(l => l.id === id)), sid);
+  await act("paste");
+  await page.fill("#pasteIn", "Unsinn");
+  await act("pasteGo");
+  ok(await page.isVisible("text=Kein gültiges Kartenset"), "Ungültiger Text wird abgelehnt");
+  await page.fill("#pasteIn", txt);
+  await act("pasteGo");
+  await page.click(".dlg .btn.primary");
+  ok(await page.evaluate(() => lists().filter(l => l.name.startsWith("Mathe 7b")).length === 3), "Eingefügter Text wird übernommen");
+  /* eigene Karten im Erklär-Modus */
+  await page.evaluate(() => goHome());
+  await act("mode", "explain");
+  while (await page.$('[data-act="deck"][aria-checked="true"]')) await page.click('[data-act="deck"][aria-checked="true"]');
+  await act("deck", "u:" + sid);
+  await act("start");
+  await act("exGo");
+  ok(/verboten \d+a/.test(await text(".forbid")), "Eigene verbotene Wörter im Erklär-Modus");
+  await page.setViewportSize({ width: 320, height: 568 });
+  await noOverflow("Erklär-Karte 320 px");
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.evaluate(() => goHome());
+
+  /* ---------- Schulmodus ---------- */
+  await act("settings");
+  await act("schoolOn");
+  await page.fill("#dlgIn", "12");
+  await page.click(".dlg .btn.primary");
+  ok(await page.isVisible(".dlg-box"), "Zu kurze PIN wird abgelehnt");
+  await page.fill("#dlgIn", "1234");
+  await page.click(".dlg .btn.primary");
+  ok(!(await page.$('[data-act="wipe"]')) && !(await page.$("#btnMail")), "Schulmodus blendet Löschen und Feedback aus");
+  await act("home");
+  ok(await page.isVisible("text=Schulmodus aktiv"), "Schulmodus auf der Startseite sichtbar");
+  await act("mode", "missions");
+  await act("start");
+  ok(await page.evaluate(() => SCHOOL_TOPICS.de.includes(R.topic) && R.ms.every(m => SCHOOL_MISSIONS.de.includes(m))), "Schulmodus: Schul-Themen und -Missionen");
+  await page.evaluate(() => goHome());
+  await act("settings");
+  await act("schoolOff");
+  await page.fill("#dlgIn", "9999");
+  await page.click(".dlg .btn.primary");
+  ok(await page.evaluate(() => school()), "Falsche PIN lässt den Schulmodus an");
+  await page.fill("#dlgIn", "1234");
+  await page.click(".dlg .btn.primary");
+  ok(await page.evaluate(() => !school()) && await page.$('[data-act="wipe"]'), "Richtige PIN schaltet aus");
+  await page.evaluate(() => goHome());
+  await act("mode", "imposter");
 
   /* ---------- Kleines Display ---------- */
   await page.setViewportSize({ width: 320, height: 568 });

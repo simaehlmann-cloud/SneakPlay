@@ -11,7 +11,9 @@ API-Schlüssel, Verträge und Entwicklerkonten hast du schon.
 | Play-Console-Entwicklerkonto | App in der Play Console + **eigener** Keystore |
 
 SneakPlay braucht **keine** besonderen Fähigkeiten: kein In-App-Kauf, keine
-Associated Domains, keine Kamera. Das macht beide Prüfungen einfacher.
+Associated Domains. Die Kamera dient nur dem QR-Scanner für Kartensets
+(Zweckangabe in der `config.xml`, Android-Erlaubnis zur Laufzeit, Kamera
+optional) – wie bei MatheSnack.
 
 ---
 
@@ -95,7 +97,15 @@ Heißt das Repo anders, die URLs in `STORE-TEXTE.md` anpassen.
 6. **Vibration:** nur Android (die iPhone-Webansicht kennt kein Vibrieren).
 7. **Zurück-Taste (Android):** in der Runde fragt sie nach, auf der
    Startseite schließt sie die App.
-8. Dunkel-/Hellmodus, Bildschirm anlassen, „Alles löschen“.
+8. **Erklär’s!** mit zwei Teams: Karte erraten/verboten/überspringen, Zeit
+   ablaufen lassen, im Rückblick eine Karte korrigieren.
+9. **QR-Austausch:** auf Gerät A eine eigene Liste mit 40 Karten → Teilen;
+   auf Gerät B Eigene Listen → Karten empfangen → QR-Code scannen. Beim
+   ersten Mal fragt das Gerät nach der Kamera. Alle Teile werden gelesen,
+   dann „Übernehmen“. Einmal „Kamera verweigern“ testen → Hinweis + Foto/Text.
+10. **Schulmodus:** mit PIN einschalten, Startseite zeigt „Schulmodus aktiv“,
+    Missionen sind Schul-Missionen; mit falscher PIN bleibt er an.
+11. Dunkel-/Hellmodus, Bildschirm anlassen, „Alles löschen“.
 
 ## 5. Einreichen
 

@@ -1,7 +1,7 @@
 # SneakPlay
 
-**Bluffen, geheime Missionen & Wort-Bombe – das Pass-&-Play-Partyspiel für
-ein Handy.** Namen eintragen, Modus wählen, Handy reihum weiterreichen. Jede
+**Bluffen, geheime Missionen, Erklären & Wort-Bombe – das Pass-&-Play-Spiel
+für ein Handy, für Spieleabende und den Unterricht.** Namen eintragen, Modus wählen, Handy reihum weiterreichen. Jede
 Person hält den Finger auf die Karte und sieht ihre geheime Rolle; beim
 Loslassen ist sie sofort wieder verdeckt.
 
@@ -15,9 +15,10 @@ Version 1.0.0 · versionCode 10000 · iOS-Build 10000 · Kennung `de.sneakplay.a
 
 | Modus | Spieler | Ablauf |
 |---|---|---|
-| 🎭 Hochstapler | 3–12 | Alle kennen den Begriff, bis auf den Hochstapler (sieht auf Wunsch die Kategorie). Wortrunde, Abstimmung, Rettungs-Chance. Optional 2 Hochstapler (ab 6) und ein Ahnungsloser (ab 5). |
-| 🎯 Geheime Missionen | 3–12 | Gesprächsthema + geheime Mission für alle außer einer Person. Gesprächs-Timer, Abstimmung, Missionen aufdecken und bewerten. |
-| 💣 Wort-Bombe | 2–12 | Aufgabe („Ein Tier“), Begriff nennen, weitergeben. Verdeckte Zündschnur (kurz/mittel/lang), Ticken wird schneller. |
+| 🎭 Hochstapler | 3–16 | Alle kennen den Begriff, bis auf den Hochstapler. Er bekommt je nach Einstellung die Kategorie, einen **ähnlichen Begriff** (weiß dann selbst nicht, dass er Hochstapler ist) oder nichts. Wortrunde, Abstimmung, Rettungs-Chance. Optional 2 Hochstapler (ab 6) und ein Ahnungsloser (ab 5). |
+| 🎯 Geheime Missionen | 3–16 | Gesprächsthema + geheime Mission für alle außer einer Person. Im Schulmodus eigene Schul-Themen und -Missionen. |
+| 🗣️ Erklär’s! | 2–4 Teams | Begriff erklären, ohne vier verbotene Wörter zu sagen. 60/90/120 s je Durchgang, ✓ / 🚫 / ⏭, Korrektur nach jedem Durchgang, Minuspunkt abschaltbar. |
+| 💣 Wort-Bombe | 2–16 oder Teams | Aufgabe („Ein Tier“, „Eine Primzahl“), Begriff nennen, weitergeben. Verdeckte Zündschnur, Ticken wird schneller. Aufgaben allgemein, Mathe oder gemischt. |
 
 Abstimmung **gemeinsam** (ein Tipp) oder **geheim** (Handy geht reihum,
 Gleichstand → Stichwahl). Nach jeder Runde Auszeichnungen und ein
@@ -25,14 +26,26 @@ Punktestand für den Abend. Begriffe wiederholen sich erst, wenn der Vorrat
 erschöpft ist. **Eigene Listen** (z. B. Vereins-Insider) für den
 Hochstapler-Modus.
 
-Inhalte je Sprache: 9 Kategorien mit 188 Begriffen, 25 Themen, 40 Missionen,
-61 Bomben-Aufgaben – ohne Alkohol, Rauchen, Glücksspiel oder Gewalt
-(`validate.js` prüft das).
+Inhalte je Sprache: 9 Kategorien mit 188 Begriffen; 10 Erklär-Decks mit
+gut 180 Karten (je 4 verbotene Wörter), davon 5 Mathe-Decks nach den
+Leitideen des Kerncurriculums (Zahlen & Operationen, Größen & Messen,
+Raum & Form, Funktionen & Algebra, Daten & Zufall) mit **Niveau** nach
+Klassenstufe (5–6 / bis 8 / bis 10) und ähnlichem Begriff; 25 + 15 Schul-Themen,
+40 + 24 Schul-Missionen, 61 + 30 Mathe-Bomben-Aufgaben – ohne Alkohol,
+Rauchen, Glücksspiel oder Gewalt (`validate.js` prüft das). Mathe-Decks und
+„Schule“ stehen auch im Hochstapler-Modus zur Wahl.
+
+**Unterricht:** Teams für ganze Klassen · **eigene Karten** mit verbotenen
+Wörtern (Format `Begriff: verboten, verboten, …`) · Weitergabe per
+**QR-Code** (mehrteilig, wechselt automatisch – zum Abscannen vom Beamer)
+oder als Text über das Teilen-Menü, Empfang per Kamera, Foto oder Einfügen –
+ohne Server · **Schulmodus** mit PIN (Schul-Themen/-Missionen, keine
+Store-/Feedback-Knöpfe, kein „Alles löschen“).
 
 ## Einstellungen (⚙️)
 
 Sprache (auch per Flaggen auf der Startseite) · Farbschema System/Hell/Dunkel ·
-Töne · Vibration · Bildschirm anlassen · Punkte zurücksetzen · Begriffe neu
+Töne · Vibration · Bildschirm anlassen · Schulmodus · Punkte zurücksetzen · Begriffe neu
 mischen · Alles löschen · Bewerten, Weiterempfehlen (jede Fassung nur ihr
 eigener Store), Feedback per E-Mail · Datenschutz, Impressum, Lizenzen.
 
@@ -44,7 +57,9 @@ www/                    die App (wird in die Cordova-Hülle kopiert)
   js/core.js            Version, Speicher, Zufall, Töne, Vibration, Timer
   js/i18n.js            Oberflächentexte Deutsch/Englisch
   js/content.js         Kategorien, Themen, Missionen, Bomben-Aufgaben
-  js/game.js            Spiellogik ohne Oberfläche (Rollen, Wertung, …)
+  js/decks.js           Erklär- und Mathe-Decks, Schul-Themen/-Missionen
+  js/game.js            Spiellogik ohne Oberfläche (Rollen, Wertung, Austausch)
+  js/qr.js, js/jsqr.js  QR erzeugen (aus MatheSnack) und lesen (jsQR, Apache 2.0)
   js/app.js             Bildschirme, Aktionen, Lebenszyklus
   datenschutz(-en).html, impressum(-en).html, lizenzen(-en).html
 docs/                   GitHub Pages: Support-Seite und Rechtstexte
@@ -54,8 +69,8 @@ store-assets/           Symbol 512, Vorstellungsgrafik, Bildschirmfotos
 config.xml              Cordova-Konfiguration
 make-icons.py           erzeugt alle Icons (läuft auch in den Workflows)
 res/                    Icons, Startbild, Privacy-Manifest
-validate.js             statische Prüfung (~3 500 Prüfungen)
-smoketest.js            Ablauftest im Browser (~130 Prüfungen)
+validate.js             statische Prüfung (~8 000 Prüfungen)
+smoketest.js            Ablauftest im Browser (~180 Prüfungen)
 .github/workflows/      Android (APK/AAB) und iOS (TestFlight)
 STORE-TEXTE.md          Texte, Datenschutz- und Altersangaben für beide Stores
 VEROEFFENTLICHEN.md     Schritt für Schritt bis in beide Stores
@@ -91,6 +106,8 @@ node tools/screenshots.js          # Store-Bildschirmfotos neu erzeugen
 
 - **Begriffe/Kategorie:** in `www/js/content.js` für **beide** Sprachen;
   neue Kategorie auch in `CAT_ORDER` und `CAT_ICON`.
+- **Erklär-/Mathe-Karte:** in `www/js/decks.js`, Format
+  `"Begriff|verboten1,verboten2,verboten3,verboten4|Niveau|ähnlicher Begriff"`.
 - **Mission/Thema/Bomben-Aufgabe:** in `content.js`, beide Sprachen.
 - **Texte:** nur in `i18n.js`; `validate.js` meldet fehlende oder unbenutzte.
 - **Wertung:** `www/js/game.js` (Tests in `validate.js` anpassen).

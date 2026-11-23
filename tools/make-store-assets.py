@@ -33,7 +33,7 @@ def font(size, bold=True):
     return ImageFont.load_default()
 
 d.text((470, 160), "SneakPlay", font=font(84), fill=(244, 241, 255))
-d.text((474, 268), "Bluffen · Missionen · Wort-Bombe", font=font(30, False), fill=(255, 210, 93))
-d.text((474, 314), "Das Partyspiel für ein Handy", font=font(30, False), fill=(171, 164, 216))
+d.text((474, 268), "Bluffen · Erklären · Wort-Bombe", font=font(30, False), fill=(255, 210, 93))
+d.text((474, 314), "Für Spieleabend und Unterricht", font=font(30, False), fill=(171, 164, 216))
 fg.convert("RGB").save(os.path.join(OUT, "feature-graphic.png"), optimize=True)
 print("Store-Grafiken in store-assets/")

@@ -497,6 +497,73 @@ const ok = (c, m) => { if (c) console.log("✓ " + m); else { fehler++; console.
   const r = await page.goto(ROOT + "/docs/index.html");
   ok(r.ok() && await page.isVisible("text=Hilfe & Kontakt"), "Pages-Infoseite lädt");
 
+
+  /* ---------- Probe-Runde, Tipps, Fortsetzen, Schriftgröße ---------- */
+  {
+    await page.goto(APP);
+    await page.evaluate(() => { localStorage.clear(); localStorage.setItem("sneakplay.pro", "true"); localStorage.setItem("sneakplay.lang", JSON.stringify("de")); });
+    await page.goto(APP);
+    await act("demo");
+    ok(await page.isVisible(".coach") && (await page.evaluate(() => R.P.length)) === 4, "Probe-Runde startet mit Tipps und 4 Spielern");
+    await revealAll(2);
+    /* App wird beendet und neu gestartet */
+    await page.goto(APP);
+    ok(await page.isVisible("text=Runde fortsetzen?"), "Nach Neustart wird Fortsetzen angeboten");
+    await page.click(".dlg .btn.primary");
+    ok(await page.evaluate(() => R && R.step === 2) && await page.isVisible("text=Karte 3 von 4"), "Runde läuft bei Karte 3 weiter");
+    await revealAll(2);
+    await act("tovote");
+    const ix = await page.evaluate(() => R.role.indexOf("imp"));
+    await act("accuse", ix); await act("reveal"); await act("showWord");
+    await act("judge", `${ix}:0`);
+    await act("finish");
+    ok(await page.isVisible("text=Ab jetzt laufen die Runden ohne diese Hinweise"), "Letzter Tipp bei den Auszeichnungen");
+    await act("again");
+    ok(!(await page.$(".coach")), "Zweite Runde ohne Tipps");
+    await page.evaluate(() => goHome());
+    ok(!(await page.evaluate(() => localStorage.getItem("sneakplay.resume"))), "Nach dem Beenden nichts mehr zum Fortsetzen");
+    /* Erklär-Modus: unterbrochener Durchgang → Ergebnisse prüfen */
+    await act("mode", "explain");
+    await act("start");
+    await act("exGo");
+    await act("exRes", "ok");
+    await page.goto(APP);
+    await page.click(".dlg .btn.primary");
+    ok(await page.isVisible("text=Ergebnisse prüfen") && (await page.$$('[data-act="exFix"]')).length === 3, "Erklär-Durchgang: nach Neustart die bisherigen Karten werten");
+    await page.evaluate(() => goHome());
+    /* Verwerfen */
+    await act("mode", "bomb"); await act("start");
+    await page.goto(APP);
+    await page.click(".dlg .btn:not(.primary)");
+    ok(!(await page.evaluate(() => localStorage.getItem("sneakplay.resume"))) && await page.isVisible(".hero"), "Verwerfen löscht die gespeicherte Runde");
+    /* Schriftgröße */
+    await page.setViewportSize({ width: 360, height: 740 });
+    await act("settings");
+    await act("fontScale", 1.25);
+    ok(await page.evaluate(() => document.body.style.zoom === "1.25"), "Sehr große Schrift aktiv");
+    await noOverflow("Einstellungen, sehr große Schrift");
+    await page.evaluate(() => goHome());
+    await noOverflow("Startseite, sehr große Schrift");
+    await act("mode", "explain"); await act("start"); await act("exGo");
+    await noOverflow("Erklär-Karte, sehr große Schrift");
+    await page.evaluate(() => screenPaywall("bomb"));
+    await noOverflow("Vollversion, sehr große Schrift");
+    await page.evaluate(() => { goHome(); localStorage.setItem("sneakplay.fontScale", "1"); applyFontScale(); });
+    await page.setViewportSize({ width: 390, height: 844 });
+  }
+
+  /* ---------- Zurück-Taste auf der Startseite ---------- */
+  {
+    await page.goto(APP);
+    await page.evaluate(() => { goHome(); window.__exits = 0; navigator.app = { exitApp: () => { window.__exits++; } }; });
+    await page.evaluate(() => document.dispatchEvent(new Event("backbutton")));
+    ok(await page.evaluate(() => window.__exits === 0) && await page.isVisible("#toast"), "Erster Druck auf Zurück beendet nicht, zeigt Hinweis");
+    await page.evaluate(() => document.dispatchEvent(new Event("backbutton")));
+    ok(await page.evaluate(() => window.__exits === 1), "Zweiter Druck kurz danach beendet");
+    await page.evaluate(() => { backArmed = 0; screenSettings(); document.dispatchEvent(new Event("backbutton")); });
+    ok(await page.isVisible(".hero") && await page.evaluate(() => window.__exits === 1), "Zurück aus den Einstellungen führt zur Startseite");
+  }
+
   /* ---------- Gratis-Modus, Testrunden und Vollversion ---------- */
   {
     await page.goto(APP);

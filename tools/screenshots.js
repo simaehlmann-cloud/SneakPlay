@@ -27,12 +27,12 @@ const NAMES = { de: ["Anna", "Ben", "Cleo", "Dana", "Emil", "Finn"], en: ["Amy",
       await page.evaluate(([lang, names]) => {
         localStorage.clear();
         const set = (k, v) => localStorage.setItem("sneakplay." + k, JSON.stringify(v));
-        set("lang", lang); set("theme", "dark"); set("pro", true); set("players", names); set("seenRules", true); set("sound", false);
+        set("lang", lang); set("theme", "dark"); set("pro", true); set("coach", { imposter: true, missions: true, explain: true, bomb: true }); set("players", names); set("seenRules", true); set("sound", false);
         set("imp", { cats: ["food", "everyday", "animals", "music"], imps: 1, clueless: false, hint: true, timer: 3, vote: "secret" });
       }, [lang, NAMES[lang]]);
       await page.goto(ROOT + "/www/index.html");
       await page.addStyleTag({ content: ".fp,.bomb.live{animation:none!important}" });
-      await page.evaluate(() => window.scrollTo(0, 230));
+      await page.evaluate(() => window.scrollTo(0, 0));
       await shot(1);                                             // Startseite
 
       /* Karte mit Begriff aufgedeckt */

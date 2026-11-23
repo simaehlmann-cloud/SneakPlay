@@ -48,6 +48,8 @@ Crew bekommt denselben Wert in verschiedenen Darstellungen (½ / 0,5 / 50 %),
 der Hochstapler einen ähnlichen, nicht gleichwertigen. `validate.js` rechnet
 die Zahlgruppen nach.
 
+**Erste Runde mit Tipps:** Bis zur ersten fertigen Runde je Modus erklärt ein Hinweis jeden Schritt; „Probe-Runde mit Erklärungen“ auf der Startseite. **Fortsetzen:** Der Rundenstand wird bei jedem Schritt gespeichert und nach einem Neustart der App angeboten (12 Stunden lang).
+
 **Zum Nachlernen:** Nach jeder Erklär-Partie stehen übersprungene und
 „verbotene“ Karten als Liste bereit, ein Tipp speichert sie als eigenes Set.
 **Klassen-Werkstatt:** Beim Empfangen lassen sich Karten an eine
@@ -62,7 +64,7 @@ Store-/Feedback-Knöpfe, kein „Alles löschen“).
 
 ## Einstellungen (⚙️)
 
-Sprache (auch per Flaggen auf der Startseite) · Farbschema System/Hell/Dunkel ·
+Sprache (auch per Flaggen auf der Startseite) · Farbschema System/Hell/Dunkel · Schriftgröße · Tipps wieder anzeigen ·
 Töne · Vibration · Bildschirm anlassen · Schulmodus · Punkte zurücksetzen · Begriffe neu
 mischen · Alles löschen · Bewerten, Weiterempfehlen (jede Fassung nur ihr
 eigener Store), Feedback per E-Mail · Datenschutz, Impressum, Lizenzen.
@@ -83,7 +85,7 @@ www/                    die App (wird in die Cordova-Hülle kopiert)
   datenschutz(-en).html, impressum(-en).html, lizenzen(-en).html
 docs/                   GitHub Pages: Support-Seite und Rechtstexte
 tools/make-legal.py     erzeugt alle Rechtstexte in www/ und docs/
-tools/make-store-assets.py, tools/screenshots.js   Store-Grafiken
+tools/make-store-assets.py, tools/screenshots.js, tools/make-listing.py   Store-Grafiken
 store-assets/           Symbol 512, Vorstellungsgrafik, Bildschirmfotos
 config.xml              Cordova-Konfiguration
 make-icons.py           erzeugt alle Icons (läuft auch in den Workflows)

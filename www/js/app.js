@@ -70,6 +70,7 @@ function show(html, opt = {}) {
   view.innerHTML = html;
   if (!opt.keepScroll) shownAt = performance.now();
   current = { name: opt.name || "", redraw: opt.redraw || null, round: !!opt.round, back: opt.back || null };
+  if (current.round && R) saveRound();
   if (!opt.keepScroll) {
     window.scrollTo(0, 0);
     const first = view.querySelector("h1, h2, .big-h, .who");
@@ -80,8 +81,64 @@ function redraw() { if (current.redraw) current.redraw(true); }
 function goHome() {
   stopRoundTimers();
   R = null;
+  store.remove("resume");
   keepAwake(false);
   screenHome();
+}
+
+/* ---------- Runde nach Neustart fortsetzen ----------
+   Android beendet Apps im Hintergrund manchmal (z. B. beim Wechsel zur
+   Kamera). Der Rundenstand wird bei jedem Bildschirmwechsel gespeichert und
+   beim nächsten Start angeboten. */
+const RESUME_MAX_MS = 12 * 3600 * 1000;
+function saveRound() {
+  try {
+    const plain = JSON.parse(JSON.stringify(R, (k, v) => (v instanceof Set ? { __set: [...v] } : v)));
+    store.set("resume", { at: Date.now(), scr: current.name, R: plain });
+  } catch (e) { /* ohne Fortsetzen weiter */ }
+}
+function reviveRound(o) {
+  return JSON.parse(JSON.stringify(o), (k, v) => (v && typeof v === "object" && Array.isArray(v.__set) ? new Set(v.__set) : v));
+}
+function offerResume() {
+  const sv = store.get("resume", null);
+  if (!sv || !sv.R || !MODES.includes(sv.R.mode) || !(Date.now() - sv.at < RESUME_MAX_MS)) { store.remove("resume"); return; }
+  dialog(t("resume.title"), `<p>${esc(t("resume.text", { mode: t("mode." + sv.R.mode), who: (sv.R.P || []).join(", ") }))}</p>`, [
+    { label: t("resume.discard"), action: () => { store.remove("resume"); } },
+    { label: t("resume.go"), primary: true, action: () => { resumeRound(sv); } }
+  ]);
+}
+function resumeRound(sv) {
+  try { R = reviveRound(sv.R); } catch (e) { store.remove("resume"); return; }
+  keepAwake(true);
+  const scr = sv.scr;
+  if (R.mode === "explain") {
+    if (R.state === "running" || R.state === "paused") R.state = R.log && R.log.length ? "review" : "ready";
+    screenExplain(); return;
+  }
+  if (R.mode === "bomb") {
+    if (R.state === "running" || R.state === "paused") R.state = "ready";
+    screenBomb(); return;
+  }
+  if (scr === "pass") screenPass();
+  else if (scr === "vote") screenVote();
+  else if (scr === "secretPass" || scr === "secretPick") { R.sel = null; screenSecretPass(); }
+  else if (scr === "tie") screenTie();
+  else if (scr === "resolve") screenResolve();
+  else screenPlay();
+}
+
+/* ---------- Geführte erste Runde ----------
+   Bis zur ersten fertigen Runde eines Modus erklärt ein Hinweis jeden Schritt. */
+function coachOn(m) { const c = store.get("coach", {}); return !(c && c[m]); }
+function coachDone(m) { const c = store.get("coach", {}) || {}; c[m] = true; store.set("coach", c); }
+function coach(key) { return R && coachOn(R.mode) ? `<div class="coach" role="note">💡 ${esc(t("coach." + key))}</div>` : ""; }
+
+/* ---------- Schriftgröße ---------- */
+const FONT_SCALES = [1, 1.12, 1.25];
+function applyFontScale() {
+  const f = Number(store.get("fontScale", 1));
+  document.body.style.zoom = FONT_SCALES.includes(f) && f !== 1 ? String(f) : "";
 }
 
 /* ---------- Dialog ---------- */
@@ -349,7 +406,9 @@ function screenHome(keep) {
   show(`<div class="homebar">${langSwitch()}<button type="button" class="iconbtn" data-act="settings" aria-label="${esc(t("set.title"))}">⚙️</button></div>
   <section class="hero"><img src="icon-192.png" alt="" width="76" height="76"><h1>SneakPlay</h1><p>${esc(t("home.tagline"))}</p>
     ${school() ? `<p class="badge">🏫 ${esc(t("school.active"))}</p>` : ""}</section>
-  ${first ? `<section class="card"><p style="margin-top:0">${esc(t("home.welcome"))}</p><button type="button" class="btn wide" data-act="rules">📖 ${esc(t("home.howto"))}</button></section>` : ""}
+  ${first ? `<section class="card"><p style="margin-top:0">${esc(t("home.welcome"))}</p>
+    <button type="button" class="btn primary wide" data-act="demo">▶ ${esc(t("home.demo"))}</button>
+    <button type="button" class="btn wide" style="margin-top:8px" data-act="rules">📖 ${esc(t("home.howto"))}</button></section>` : ""}
   <section class="card"><h2>${esc(t("mode.title"))}</h2><div class="modes" role="radiogroup" aria-label="${esc(t("mode.title"))}">
     ${MODES.map(k => `<button type="button" class="mode" role="radio" aria-checked="${k === m}" data-act="mode" data-v="${k}"><span class="mi" aria-hidden="true">${MODE_ICON[k]}</span><span><b>${esc(t("mode." + k))} ${modeBadge(k)}</b><small>${esc(t("mode." + k + ".sub"))}</small></span></button>`).join("")}
   </div></section>
@@ -475,15 +534,21 @@ function screenPass() {
     <div class="secret" id="secret" aria-live="polite"></div>
   </div>
   <button type="button" class="btn primary big" id="nextBtn" data-act="next" disabled>${esc(last ? t("pass.allDone") : t("pass.next", { name: R.P[i + 1] }))}</button>
-  <p class="muted small center">${esc(t("pass.nextHint"))}</p>`, { name: "pass", redraw: screenPass, round: true });
+  <p class="muted small center">${esc(t("pass.nextHint"))}</p>
+  ${i === 0 ? coach("pass") : ""}`, { name: "pass", redraw: screenPass, round: true });
   const hold = document.getElementById("hold"), sec = document.getElementById("secret"), nb = document.getElementById("nextBtn");
+  fitHold(hold, nb);
   let showing = false;
   const on = e => {
     if (e) e.preventDefault();
     if (showing) return;
     showing = true;
-    sec.innerHTML = secretHTML(i);
+    sec.innerHTML = `<div class="fitwrap">${secretHTML(i)}</div>`;
     hold.classList.add("show");
+    /* Sehr lange Texte bei großer Schrift: Inhalt verkleinern statt scrollen
+       (auf der Karte ist Wischen gesperrt) */
+    const fw = sec.firstChild;
+    if (sec.scrollHeight > sec.clientHeight + 1) fw.style.zoom = String(Math.max(0.65, (sec.clientHeight - 24) / sec.scrollHeight));
     if (nb.disabled) { nb.disabled = false; vibrate(15); sfx("reveal"); }
   };
   const off = () => { if (!showing) return; showing = false; hold.classList.remove("show"); sec.innerHTML = ""; };
@@ -495,6 +560,22 @@ function screenPass() {
   hold.addEventListener("keyup", e => { if (e.key === " " || e.key === "Enter") off(); });
   hold.addEventListener("blur", off);
 }
+
+/* Karte und Weiter-Knopf müssen ohne Scrollen sichtbar sein: Auf der Karte
+   selbst ist Wischen gesperrt (sonst verrutscht sie beim Halten). Die Karte
+   wird so weit verkleinert, dass der Knopf auf den Bildschirm passt. */
+function fitHold(hold, btn) {
+  try {
+    hold.style.height = ""; hold.classList.remove("compact");
+    const over = btn.getBoundingClientRect().bottom + 12 - window.innerHeight;
+    if (over <= 0) return;
+    const r = hold.getBoundingClientRect(), css = hold.offsetHeight, scale = r.height / css || 1;
+    const nh = Math.max(170, Math.floor(css - over / scale));
+    hold.style.height = nh + "px";
+    hold.classList.toggle("compact", nh < 250);
+  } catch (e) { /* Standardhöhe bleibt */ }
+}
+window.addEventListener("resize", () => { const h = document.getElementById("hold"), b = document.getElementById("nextBtn"); if (h && b) fitHold(h, b); });
 
 /* =====================================================================
    Gesprächsphase
@@ -536,14 +617,14 @@ function toggleTimer() {
 function screenPlay() {
   if (R.mode === "imposter") {
     const n = R.P.length, s = R.starter, order = range(n).map(k => R.P[(s + k) % n]);
-    show(`${topbar()}<div class="card center pop"><div class="step">${esc(t("play.imp.step"))}</div><div class="big-h">${esc(t("play.imp.starts", { name: R.P[s] }))}</div>
+    show(`${topbar()}${coach(R.equiv ? "playEquiv" : "playImp")}<div class="card center pop"><div class="step">${esc(t("play.imp.step"))}</div><div class="big-h">${esc(t("play.imp.starts", { name: R.P[s] }))}</div>
       <p>${esc(t(R.equiv ? "play.imp.textEquiv" : "play.imp.text"))}</p><div class="order">${order.map(p => `<span>${esc(p)}</span>`).join("")}</div></div>
       ${R.timer ? timerCard(R.timer, "timer.startTalk") : ""}
       <div class="card"><p class="muted" style="margin:0">💡 ${esc(t(R.hint === "similar" ? "play.imp.tipSimilar" : "play.imp.tip"))}</p></div>
       <button type="button" class="btn primary big" data-act="tovote">${esc(t("play.toVote"))}</button>`, { name: "play", round: true });
     if (R.timer) initTimer(R.timer);
   } else {
-    show(`${topbar()}<div class="card center pop"><div class="step">${esc(t("card.topic"))}</div><div class="topic">${esc(R.topic)}</div>
+    show(`${topbar()}${coach("playMis")}<div class="card center pop"><div class="step">${esc(t("card.topic"))}</div><div class="topic">${esc(R.topic)}</div>
       <p>${esc(t("play.mis.text"))}</p><p class="muted" style="margin-bottom:0">${esc(t("play.mis.note"))}</p></div>
       ${timerCard(R.timer, "timer.startTalk")}
       <button type="button" class="btn primary big" data-act="tovote">${esc(t("play.toVote"))}</button>`, { name: "play", round: true });
@@ -559,7 +640,7 @@ function voteQuestion() {
   return R.role.filter(x => x === "imp").length > 1 ? t("vote.q.imp2") : t("vote.q.imp");
 }
 function screenVote(keep) {
-  show(`${topbar()}<div class="center pop"><div class="step">${esc(t("vote.step"))}</div><div class="big-h">${esc(voteQuestion())}</div><p class="muted">${esc(t("vote.group.text"))}</p></div>
+  show(`${topbar()}${coach("vote")}<div class="center pop"><div class="step">${esc(t("vote.step"))}</div><div class="big-h">${esc(voteQuestion())}</div><p class="muted">${esc(t("vote.group.text"))}</p></div>
     <div class="grid" role="radiogroup" aria-label="${esc(voteQuestion())}">${R.P.map((p, i) => `<button type="button" class="pbtn" role="radio" aria-checked="${R.accused === i}" data-act="accuse" data-v="${i}">${esc(p)}</button>`).join("")}</div>
     <button type="button" class="btn primary big" data-act="reveal"${R.accused == null ? " disabled" : ""}>${esc(t("vote.reveal"))}</button>`,
   { name: "vote", round: true, keepScroll: keep });
@@ -571,7 +652,7 @@ function startVote() {
 }
 function screenSecretPass() {
   const i = R.vi;
-  show(`${topbar()}<div class="center pop"><div class="step">${esc(t("vote.secret.step", { i: i + 1, n: R.P.length }))}</div>
+  show(`${topbar()}${i === 0 ? coach("secret") : ""}<div class="center pop"><div class="step">${esc(t("vote.secret.step", { i: i + 1, n: R.P.length }))}</div>
     <div class="passto">${esc(t("pass.give"))}</div><div class="who">${esc(R.P[i])}</div><p class="muted">${esc(t("vote.secret.text"))}</p></div>
     <button type="button" class="btn primary big" data-act="secretOpen">${esc(t("vote.secret.iam", { name: R.P[i] }))}</button>`,
   { name: "secretPass", round: true });
@@ -632,7 +713,7 @@ function resolveImp(keep) {
         <button type="button" role="radio" class="bad" aria-checked="${R.judged[g] === false}" data-act="judge" data-v="${g}:0">✗ ${esc(t("res.wrong"))}</button></div></div>`).join("")}</div>` : ""}
       <button type="button" class="btn primary big" data-act="finish"${ready ? "" : " disabled"}>${esc(t("res.toAwards"))}</button>`;
   }
-  show(`${topbar()}<div class="card center pop">${head}${countsLine()}</div>${body}`, { name: "resolve", round: true, keepScroll: keep });
+  show(`${topbar()}${coach("resolveImp")}<div class="card center pop">${head}${countsLine()}</div>${body}`, { name: "resolve", round: true, keepScroll: keep });
 }
 function resolveMis(keep) {
   const a = R.accused, found = a === R.none, none = R.P[R.none];
@@ -641,7 +722,7 @@ function resolveMis(keep) {
     : `<div class="e-big">😐</div><div class="big-h">${esc(t("res.miss"))}</div><p>${esc(t("res.notFound.text", { name: R.P[a], none }))}</p>`;
   const holders = range(R.P.length).filter(i => i !== R.none);
   const ready = holders.every(i => R.res[i]);
-  show(`${topbar()}<div class="card center pop">${head}${countsLine()}</div>
+  show(`${topbar()}${coach("resolveMis")}<div class="card center pop">${head}${countsLine()}</div>
     <div class="card"><h2>🕵️ ${esc(t("res.missions"))}</h2><p class="muted" style="margin-top:0">${esc(t("res.missions.text", { name: none }))}</p>
     ${holders.map(i => `<div class="mcard"><div class="judge" style="border:0;padding:0"><span class="nm">${esc(R.P[i])}</span>${R.open[i] ? "" : `<button type="button" class="btn" data-act="mopen" data-v="${i}">${esc(t("res.open"))}</button>`}</div>
       ${R.open[i] ? `<div class="mt">${esc(R.ms[i])}</div><div class="jb" role="radiogroup" aria-label="${esc(R.P[i])}">
@@ -663,8 +744,10 @@ function finishRound() {
   R.P.forEach((p, i) => { if (r.delta[i]) S[p] = (S[p] || 0) + r.delta[i]; });
   store.set(key, S);
   R.result = r;
+  store.remove("resume");
   sfx("fanfare");
   screenAwards();
+  coachDone(R.mode);
 }
 function awardRows(r) {
   return r.awards.map((a, k) => `<div class="award" style="animation-delay:${k * 90}ms"><div class="e" aria-hidden="true">${a.icon}</div><div><b>${esc(t("aw." + a.key))}</b>
@@ -678,6 +761,7 @@ function screenAwards(keep) {
   const r = R.result, S = scores(R.teamMode ? "teamScores" : "scores");
   const rows = R.P.map((p, i) => [p, S[p] || 0, r.delta[i] || 0]).sort((x, y) => y[1] - x[1]);
   show(`<div class="center pop"><div class="e-big">🏆</div><div class="big-h">${esc(t("aw.title"))}</div></div>
+    ${coach("awards")}
     ${awardRows(r)}
     <div class="card" style="margin-top:16px"><h2>${esc(t(R.teamMode ? "score.teams" : "score.title"))}</h2>${scoreTable(rows)}</div>
     <button type="button" class="btn primary big" data-act="again">${esc(t("aw.again"))}</button>
@@ -704,7 +788,7 @@ function exScoreboard() {
 function screenExplain(keep) {
   const st = R.state, tm = exTeam();
   if (st === "ready") {
-    show(`${topbar()}<div class="center pop"><div class="step">${esc(t("ex.round", { i: exRoundNo(), n: R.rounds }))}</div>
+    show(`${topbar()}${coach("exReady")}<div class="center pop"><div class="step">${esc(t("ex.round", { i: exRoundNo(), n: R.rounds }))}</div>
       <div class="big-h">${dot(tm)} ${esc(t("ex.turn", { team: R.P[tm] }))}</div></div>
       ${exScoreboard()}
       <div class="card"><ol class="steps">${t("ex.howto").split("\n").map(x => `<li>${esc(x)}</li>`).join("")}</ol></div>
@@ -733,7 +817,7 @@ function screenExplain(keep) {
   }
   if (st === "review") {
     const pts = explainPoints(R.log, R.penalty);
-    show(`${topbar()}<div class="center pop"><div class="e-big">⏰</div><div class="big-h">${esc(t("timer.up"))}</div>
+    show(`${topbar()}${coach("exReview")}<div class="center pop"><div class="e-big">⏰</div><div class="big-h">${esc(t("timer.up"))}</div>
       <p>${dot(tm)} <b>${esc(R.P[tm])}</b>: ${esc(t("ex.turnPts", { n: pts }))}</p></div>
       <div class="card"><h2>${esc(t("ex.review"))}</h2><p class="muted small" style="margin-top:0">${esc(t("ex.review.hint"))}</p>
       ${R.log.length ? R.log.map((x, i) => `<div class="judge"><span class="nm">${esc(x.w)}</span><div class="jb" role="radiogroup" aria-label="${esc(x.w)}">
@@ -801,6 +885,8 @@ function exConfirm() {
   R.turn++;
   if (R.turn >= R.P.length * R.rounds) {
     R.state = "done";
+    store.remove("resume");
+    coachDone("explain");
     const S = scores("teamScores");
     R.P.forEach((p, i) => { S[p] = (S[p] || 0) + R.pts[i]; });
     store.set("teamScores", S);
@@ -821,7 +907,7 @@ function screenBomb(keep) {
   const st = R.state;
   let body;
   if (st === "ready") {
-    body = `<div class="card center pop"><div class="step">${esc(t("bomb.task"))}</div><div class="topic">${esc(R.prompt)}</div>
+    body = `${coach("bomb")}<div class="card center pop"><div class="step">${esc(t("bomb.task"))}</div><div class="topic">${esc(R.prompt)}</div>
       <p>${esc(t(R.teamMode ? "bomb.textTeams" : "bomb.text"))}</p><button type="button" class="link" data-act="bombSkip">${esc(t("bomb.other"))}</button></div>
       <button type="button" class="btn primary big" data-act="bombGo">💣 ${esc(t("bomb.go"))}</button>`;
   } else if (st === "running" || st === "paused") {
@@ -1192,6 +1278,8 @@ function screenSettings(keep) {
     <section class="card"><h2>${esc(t("set.language"))}</h2>${langSwitch()}</section>
     <section class="card"><h2>${esc(t("set.look"))}</h2>
       <div class="opt col"><div class="lbl"><b>${esc(t("set.theme"))}</b></div>${seg(t("set.theme"), [["auto", t("set.theme.auto")], ["light", t("set.theme.light")], ["dark", t("set.theme.dark")]], theme, "theme")}</div>
+      <div class="opt col"><div class="lbl"><b>${esc(t("set.font"))}</b><small>${esc(t("set.font.hint"))}</small></div>${seg(t("set.font"), [[1, t("set.font.1")], [1.12, t("set.font.2")], [1.25, t("set.font.3")]], Number(store.get("fontScale", 1)), "fontScale")}</div>
+      <div class="opt"><div class="lbl"><b>${esc(t("coach.reset"))}</b><small>${esc(t("coach.reset.hint"))}</small></div><button type="button" class="btn" data-act="coachReset">↺</button></div>
     </section>
     <section class="card"><h2>${esc(t("set.feedback"))}</h2>
       <div class="opt"><div class="lbl"><b>${esc(t("set.sound"))}</b></div>${sw(t("set.sound"), store.get("sound", true), "sound")}</div>
@@ -1296,6 +1384,14 @@ const ACT = {
   vibrate: () => { if (toggleStore("vibrate", true)) vibrate(40); screenSettings(true); },
   awake: () => { toggleStore("awake", true); screenSettings(true); },
   schoolOn: () => schoolOn(),
+  demo: () => {
+    if (players().length < 3) store.set("players", range(4).map(i => t("players.default", { n: i + 1 })));
+    store.set("mode", "imposter");
+    const c = store.get("coach", {}) || {}; delete c.imposter; store.set("coach", c);
+    startRound();
+  },
+  coachReset: () => { store.remove("coach"); toast(t("coach.reset.done")); },
+  fontScale: v => { store.set("fontScale", +v); applyFontScale(); screenSettings(true); },
   paywall: () => screenPaywall(null),
   restore: () => restorePro(),
   schoolOff: () => schoolOff(),
@@ -1360,6 +1456,7 @@ view.addEventListener("click", e => {
    ===================================================================== */
 function onHidden() {
   if (holdOff) holdOff();
+  if (R && current.round) saveRound();
   if (R && R.mode === "explain" && TIMER && TIMER.running) { TIMER.pause(); R.state = "paused"; screenExplain(); }
   else if (TIMER && TIMER.running) { TIMER.pause(); const b = document.getElementById("tbtn"); if (b) b.textContent = "▶ " + t("timer.resume"); }
   if (BOMB && BOMB.cd.running) bombPause();
@@ -1370,16 +1467,26 @@ document.addEventListener("visibilitychange", () => {
 });
 document.addEventListener("pause", onHidden, false);         // Cordova: App geht in den Hintergrund
 window.addEventListener("blur", () => { if (holdOff) holdOff(); });
-document.addEventListener("backbutton", e => {
-  e.preventDefault();
+/* Zurück-Taste (Android): erst zurück zur Startseite, dort nur nach
+   zweitem Druck innerhalb von 2 Sekunden beenden – ein versehentlicher
+   Druck schließt die App nicht. */
+let backArmed = 0;
+function onBackButton(e) {
+  if (e && e.preventDefault) e.preventDefault();
   if (!dlgEl.hidden) { closeDialog(); return; }
   if (current.round) { abortRound(); return; }
   if (current.back === "lists") { screenLists(); return; }
-  if (current.name === "paywall") { goHome(); return; }
   if (current.name !== "home") { goHome(); return; }
-  if (navigator.app && navigator.app.exitApp) navigator.app.exitApp();
-}, false);
-document.addEventListener("deviceready", () => { applyStatusBar(); initShop(); }, false);
+  const now = Date.now();
+  if (now - backArmed < 2000) {
+    if (navigator.app && navigator.app.exitApp) navigator.app.exitApp();
+    return;
+  }
+  backArmed = now;
+  toast(t("back.again"), 2000);
+}
+document.addEventListener("backbutton", onBackButton, false);
+document.addEventListener("deviceready", () => { document.addEventListener("backbutton", onBackButton, false); applyStatusBar(); initShop(); }, false);
 if (window.matchMedia) {
   try { matchMedia("(prefers-color-scheme: light)").addEventListener("change", () => { applyStatusBar(); if (current.name === "settings") screenSettings(true); }); } catch (e) { /* alt */ }
 }
@@ -1387,4 +1494,6 @@ if (window.matchMedia) {
 /* ---------- Start ---------- */
 setLang(store.get("lang", null) || detectLang());
 applyTheme();
+applyFontScale();
 screenHome();
+offerResume();

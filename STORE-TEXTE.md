@@ -236,12 +236,15 @@ SneakPlay is a pass-and-play party game for one phone. Players enter nicknames, 
 ## Grafiken
 
 Im Ordner `store-assets/` (nicht Teil der App, erzeugt mit
-`python3 tools/make-store-assets.py` und `node tools/screenshots.js`):
+`python3 tools/make-store-assets.py`, `node tools/screenshots.js` und
+`python3 tools/make-listing.py`):
 
 | Datei | Wofür | Größe |
 |---|---|---|
 | `icon-512.png` | Play Console: App-Symbol | 512 × 512 |
 | `feature-graphic.png` | Play Console: Vorstellungsgrafik (Pflicht) | 1024 × 500 |
+| **`listing/phone69-de-1…8.png`**, `…-en-…` | **App Store Connect: iPhone 6,9″ – mit Überschrift (empfohlen)** | 1320 × 2868 |
+| **`listing/play-de-1…8.png`**, `…-en-…` | **Play Console: Smartphone – mit Überschrift (empfohlen)** | 1080 × 1920 |
 | `screens/phone69-de-1…7.png` (+ `3b`), `…-en-…` | App Store Connect: iPhone 6,9″ | 1320 × 2868 |
 | `review-paywall-*.png` | Prüfungs-Screenshot des In-App-Kaufs | wie oben |
 | `screens/play-de-1…7.png` (+ `3b`), `…-en-…` | Play Console: Smartphone (höchstens 8) | 1080 × 1920 |

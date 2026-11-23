@@ -479,6 +479,17 @@ const ok = (c, m) => { if (c) console.log("✓ " + m); else { fehler++; console.
   await page.evaluate(() => goHome());
   await page.click('.link[data-act="rules"]');
   await noOverflow("Regeln 320 px");
+  await page.evaluate(() => goHome());
+  for (const k of ["imposter", "missions", "explain", "bomb"]) {
+    await page.click(`.qbtn[data-v="${k}"]`);
+    ok(await page.evaluate(() => document.querySelectorAll("section.rules").length === 2), `„?“ zeigt nur die Regeln von ${k}`);
+    await noOverflow(`Regeln ${k} 320 px`);
+    await page.evaluate(() => goHome());
+  }
+  ok(await page.isVisible('.linkrow [data-act="demo"]'), "Proberunde immer auf der Startseite");
+  await page.click('.linkrow [data-act="demo"]');
+  ok(await page.evaluate(() => current.name === "pass" && R.mode === "imposter" && !!document.querySelector(".coach")), "Proberunde startet Hochstapler mit Tipps");
+  await page.evaluate(() => goHome());
 
   /* ---------- Alles löschen ---------- */
   await page.evaluate(() => goHome());

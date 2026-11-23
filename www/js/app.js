@@ -410,13 +410,13 @@ function screenHome(keep) {
     <button type="button" class="btn primary wide" data-act="demo">▶ ${esc(t("home.demo"))}</button>
     <button type="button" class="btn wide" style="margin-top:8px" data-act="rules">📖 ${esc(t("home.howto"))}</button></section>` : ""}
   <section class="card"><h2>${esc(t("mode.title"))}</h2><div class="modes" role="radiogroup" aria-label="${esc(t("mode.title"))}">
-    ${MODES.map(k => `<button type="button" class="mode" role="radio" aria-checked="${k === m}" data-act="mode" data-v="${k}"><span class="mi" aria-hidden="true">${MODE_ICON[k]}</span><span><b>${esc(t("mode." + k))} ${modeBadge(k)}</b><small>${esc(t("mode." + k + ".sub"))}</small></span></button>`).join("")}
+    ${MODES.map(k => `<div class="moderow"><button type="button" class="mode" role="radio" aria-checked="${k === m}" data-act="mode" data-v="${k}"><span class="mi" aria-hidden="true">${MODE_ICON[k]}</span><span><b>${esc(t("mode." + k))} ${modeBadge(k)}</b><small>${esc(t("mode." + k + ".sub"))}</small></span></button><button type="button" class="qbtn" data-act="rulesFor" data-v="${k}" aria-label="${esc(t("mode.help", { mode: t("mode." + k) }))}">?</button></div>`).join("")}
   </div></section>
   ${teamMode ? teamsCard() : playersCard()}
   ${modeOptions(m, n)}
   <p class="err" id="why">${esc(why)}</p>
   <button type="button" class="btn primary big" data-act="start"${why ? " disabled" : ""}>${esc(t("home.start"))}</button>
-  <button type="button" class="link" data-act="rules">${esc(t("home.rules"))}</button>
+  <div class="linkrow"><button type="button" class="link" data-act="rules">📖 ${esc(t("home.rules"))}</button><button type="button" class="link" data-act="demo">▶ ${esc(t("home.demoShort"))}</button></div>
   ${scoreCard(teamMode)}
   <footer class="foot"><p>${esc(t("home.privacy"))}</p><p><a href="${legalUrl("datenschutz")}">${esc(t("legal.privacy"))}</a> · <a href="${legalUrl("impressum")}">${esc(t("legal.imprint"))}</a></p></footer>`,
   { name: "home", redraw: screenHome, keepScroll: keep });
@@ -968,14 +968,23 @@ function bombExplode() {
 /* =====================================================================
    Spielregeln
    ===================================================================== */
-function screenRules() {
+function screenRules(only) {
   store.set("seenRules", true);
+  const one = MODES.includes(only) ? only : null;
   const sec = k => `<section class="card rules"><h2>${MODE_ICON[k]} ${esc(t("mode." + k))}</h2><ol>${t("rules." + k).split("\n").map(x => `<li>${esc(x)}</li>`).join("")}</ol>
     <p class="score-note">${esc(t("rules." + k + ".score"))}</p></section>`;
-  show(`${backbar(t("home.rules"))}${MODES.map(sec).join("")}
-    <section class="card rules"><h2>👆 ${esc(t("rules.hold.title"))}</h2><p style="margin:0">${esc(t("rules.hold"))}</p></section>
+  const hold = `<section class="card rules"><h2>👆 ${esc(t("rules.hold.title"))}</h2><p style="margin:0">${esc(t("rules.hold"))}</p></section>`;
+  if (one) {
+    show(`${backbar(t("mode." + one))}${sec(one)}${hold}
+    ${one === "imposter" ? `<button type="button" class="btn wide" data-act="demo">▶ ${esc(t("home.demo"))}</button>` : ""}
+    <button type="button" class="link" data-act="rules">📖 ${esc(t("rules.all"))}</button>
+    <button type="button" class="btn primary big" data-act="home">${esc(t("back"))}</button>`, { name: "rules", redraw: () => screenRules(one) });
+    return;
+  }
+  show(`${backbar(t("home.rules"))}${MODES.map(sec).join("")}${hold}
     <section class="card rules"><h2>🏫 ${esc(t("rules.school.title"))}</h2><p style="margin:0">${esc(t("rules.school"))}</p></section>
-    <button type="button" class="btn primary big" data-act="home">${esc(t("back"))}</button>`, { name: "rules", redraw: screenRules });
+    <button type="button" class="btn wide" data-act="demo">▶ ${esc(t("home.demo"))}</button>
+    <button type="button" class="btn primary big" data-act="home">${esc(t("back"))}</button>`, { name: "rules", redraw: () => screenRules() });
 }
 
 /* =====================================================================
@@ -1350,6 +1359,7 @@ const ACT = {
   lang: v => { if (v === LANG) return; setLang(v); store.set("lang", v); redraw(); },
   settings: () => screenSettings(),
   rules: () => screenRules(),
+  rulesFor: v => screenRules(v),
   home: () => goHome(),
   quick: () => { store.set("players", range(4).map(i => t("players.default", { n: i + 1 }))); screenHome(true); },
   rename: v => renameIn("players", players(), +v, "scores"),

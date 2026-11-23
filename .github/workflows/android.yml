@@ -112,14 +112,19 @@ jobs:
           else
             echo "::error::Ziel-SDK ist nicht ${TARGET_SDK}. Der Upload würde abgelehnt."; FEHLER=1
           fi
-          for P in cordova-plugin-statusbar cordova-plugin-x-socialsharing cordova-plugin-insomnia; do
+          for P in cordova-plugin-statusbar cordova-plugin-x-socialsharing cordova-plugin-insomnia cordova-plugin-android-permissions; do
             cordova plugin ls | grep -q "^$P" && echo "Plugin $P installiert" || { echo "::error::Plugin $P fehlt."; FEHLER=1; }
           done
           grep -q 'android.permission.VIBRATE' platforms/android/app/src/main/AndroidManifest.xml \
             && echo "VIBRATE im Manifest" \
             || { echo "::error::android.permission.VIBRATE fehlt im Manifest (config.xml, config-file)."; FEHLER=1; }
-          # SneakPlay braucht weder Internet-Daten noch Kamera, Ort oder Kontakte.
-          for VERBOTEN in CAMERA ACCESS_FINE_LOCATION ACCESS_COARSE_LOCATION READ_CONTACTS RECORD_AUDIO; do
+          grep -q 'android.permission.CAMERA' platforms/android/app/src/main/AndroidManifest.xml \
+            && echo "CAMERA im Manifest (QR-Scanner)" \
+            || { echo "::error::android.permission.CAMERA fehlt – der QR-Scanner bekäme keine Erlaubnis."; FEHLER=1; }
+          grep -q 'android.hardware.camera" android:required="false"' platforms/android/app/src/main/AndroidManifest.xml \
+            || { echo "::error::Kamera nicht als optional markiert – Geräte ohne Kamera könnten die App nicht installieren."; FEHLER=1; }
+          # SneakPlay braucht weder Ort noch Kontakte noch Mikrofon.
+          for VERBOTEN in ACCESS_FINE_LOCATION ACCESS_COARSE_LOCATION READ_CONTACTS RECORD_AUDIO; do
             if grep -q "android.permission.$VERBOTEN" platforms/android/app/src/main/AndroidManifest.xml; then
               echo "::error::Unerwartete Berechtigung $VERBOTEN im Manifest."; FEHLER=1
             fi

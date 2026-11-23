@@ -155,9 +155,10 @@ jobs:
           [ "$BUILDNR" = "$SOLL_BUILD" ] || { echo "::error::Build-Nummer ist '$BUILDNR', config.xml sagt '$SOLL_BUILD'."; FEHLER=1; }
           [ "$KRYPTO" = "false" ] || { echo "::error::ITSAppUsesNonExemptEncryption fehlt – jeder Upload fragt sonst nach."; FEHLER=1; }
 
-          # Das Teilen-Plugin trägt die Foto-Schlüssel ein. Leer oder nur ein
-          # Leerzeichen wird bei der Prüfung abgelehnt.
-          for K in NSPhotoLibraryAddUsageDescription NSPhotoLibraryUsageDescription; do
+          # Kamera (QR-Scanner) und die Foto-Schlüssel des Teilen-Plugins: leer
+          # oder nur ein Leerzeichen wird abgelehnt, ohne Kamera-Text beendet
+          # iOS die App beim ersten Scan.
+          for K in NSCameraUsageDescription NSPhotoLibraryAddUsageDescription NSPhotoLibraryUsageDescription; do
             W=$(holen $K)
             if [ "$W" = "FEHLT" ] || [ "${#W}" -lt 20 ]; then
               echo "::error::$K fehlt oder ist leer ('$W')."; FEHLER=1
@@ -173,7 +174,7 @@ jobs:
             echo "Gerätefamilie:    nur Handy"
           fi
 
-          for P in cordova-plugin-statusbar cordova-plugin-x-socialsharing cordova-plugin-insomnia; do
+          for P in cordova-plugin-statusbar cordova-plugin-x-socialsharing cordova-plugin-insomnia cordova-plugin-android-permissions; do
             cordova plugin ls | grep -q "^$P" && echo "Plugin $P installiert" || { echo "::error::Plugin $P fehlt."; FEHLER=1; }
           done
 

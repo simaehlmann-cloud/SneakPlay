@@ -6,6 +6,7 @@
 
 Ergebnis: store-assets/listing/<format>-<sprache>-<nr>.png
   phone69 = 1320 × 2868 (App Store Connect, iPhone 6,9″)
+  phone63 = 1206 × 2622 (App Store Connect, iPhone 6,3″ – mittleres Display)
   ipad13  = 2064 × 2752 (App Store Connect, iPad 13″)
   play    = 1080 × 1920 (Play Console, Smartphone)
 Überschriften ohne Marken- oder Plattformnamen."""
@@ -21,7 +22,7 @@ GOLD, WHITE = (255, 210, 93), (244, 241, 255)
 SHOTS = ["1", "2", "3", "3b", "4", "5", "6", "7"]
 CAPTIONS = {
     "de": {
-        "1": ("Ein Handy. Vier Spiele.", "Für Spieleabend und Unterricht"),
+        "1": ("Ein Handy. Vier Spiele.", "Für Partys, Spieleabend und Unterricht"),
         "2": ("Geheim aufdecken", "Finger drauf – loslassen – weg"),
         "3": ("Zahlen-Hochstapler", "½, 0,5 oder 50 % – wer passt nicht?"),
         "3b": ("Erklären ohne verbotene Wörter", "Mathe-Begriffe nach Klassenstufe"),
@@ -31,7 +32,7 @@ CAPTIONS = {
         "7": ("Eigene Karten teilen", "Per QR-Code – ohne Konto, ohne Server"),
     },
     "en": {
-        "1": ("One phone. Four games.", "For game nights and the classroom"),
+        "1": ("One phone. Four games.", "For parties, game nights and lessons"),
         "2": ("Reveal in secret", "Finger on – let go – hidden"),
         "3": ("Number imposter", "½, 0.5 or 50% – who doesn’t fit?"),
         "3b": ("Explain without forbidden words", "Maths terms by school year"),
@@ -103,7 +104,7 @@ def compose(src, title, sub):
 def main():
     os.makedirs(OUT, exist_ok=True)
     n = 0
-    for fmt in ("phone69", "ipad13", "play"):
+    for fmt in ("phone69", "phone63", "ipad13", "play"):
         for lang in ("de", "en"):
             for i, key in enumerate(SHOTS, start=1):
                 src = os.path.join(SRC, f"{fmt}-{lang}-{key}.png")

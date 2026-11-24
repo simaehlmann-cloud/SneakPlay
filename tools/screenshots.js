@@ -2,6 +2,7 @@
    Vorher im Repo-Ordner: python3 -m http.server 8765
    Dann:                  node tools/screenshots.js
    Legt store-assets/screens/ an: phone69-* (1320 × 2868, iPhone 6,9″),
+   phone63-* (1206 × 2622, iPhone 6,3″ – „mittleres Display“),
    ipad13-* (2064 × 2752, iPad 13″)
    und play-* (1080 × 1920) je Sprache, dunkles Design. */
 "use strict";
@@ -11,7 +12,7 @@ const path = require("path");
 
 const ROOT = process.env.BASE || "http://localhost:8765";
 const OUT = path.join(__dirname, "..", "store-assets", "screens");
-const TARGETS = { phone69: { width: 440, height: 956 }, ipad13: { width: 1032, height: 1376, scale: 2 }, play: { width: 360, height: 640 } };
+const TARGETS = { phone69: { width: 440, height: 956 }, phone63: { width: 402, height: 874 }, ipad13: { width: 1032, height: 1376, scale: 2 }, play: { width: 360, height: 640 } };
 const NAMES = { de: ["Anna", "Ben", "Cleo", "Dana", "Emil", "Finn"], en: ["Amy", "Ben", "Chloe", "Dan", "Ella", "Finn"] };
 
 (async () => {

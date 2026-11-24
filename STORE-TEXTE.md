@@ -259,7 +259,8 @@ Im Ordner `store-assets/` (nicht Teil der App, erzeugt mit
 |---|---|---|
 | `icon-512.png` | Play Console: App-Symbol | 512 × 512 |
 | `feature-graphic.png` | Play Console: Vorstellungsgrafik (Pflicht) | 1024 × 500 |
-| **`listing/phone69-de-1…8.png`**, `…-en-…` | **App Store Connect: iPhone 6,9″ – mit Überschrift (empfohlen)** | 1320 × 2868 |
+| **`listing/phone63-de-1…8.png`**, `…-en-…` | **App Store Connect: „iPhone mit Dynamic Island (mittleres Display)“ – 6,1″/6,3″** | 1206 × 2622 |
+| **`listing/phone69-de-1…8.png`**, `…-en-…` | **App Store Connect: iPhone 6,9″ (großes Display, falls angeboten)** | 1320 × 2868 |
 | **`listing/ipad13-de-1…8.png`**, `…-en-…` | **App Store Connect: iPad 13″ – mit Überschrift (Pflicht für iPad)** | 2064 × 2752 |
 | **`listing/play-de-1…8.png`**, `…-en-…` | **Play Console: Smartphone – mit Überschrift (empfohlen)** | 1080 × 1920 |
 | `screens/phone69-de-1…7.png` (+ `3b`), `…-en-…` | App Store Connect: iPhone 6,9″ | 1320 × 2868 |

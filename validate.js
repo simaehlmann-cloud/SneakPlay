@@ -128,6 +128,10 @@ for (const [sec, isDe] of [["Deutsch", true], ["English", false]]) {
     const mk = txt.match(MARKEN);
     ok(!mk, `STORE-TEXTE.md: ${sec} → ${label} nennt die fremde Marke „${mk && mk[0]}“`);
     if (isBytes) ok(!/, /.test(txt) && !/\s$/.test(txt), `STORE-TEXTE.md: ${sec} → Schlüsselwörter ohne Leerzeichen nach Kommas`);
+    // App Store Connect speichert Texte mit Emojis/Variantenwählern oft nicht
+    const emo = txt.match(/[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}\uFE0F\u200D]/u);
+    ok(!emo, `STORE-TEXTE.md: ${sec} → ${label} enthält ein Emoji („${emo && emo[0]}“) – App Store Connect lehnt das ab`);
+    ok(len <= max - 60 || isBytes || max < 1000, `STORE-TEXTE.md: ${sec} → ${label} ist mit ${len} Zeichen knapp an der Grenze – Zeilenumbrüche zählen teils doppelt`);
   }
 }
 const review = (st.match(/### Prüfungsanmerkungen[\s\S]*?```\n([\s\S]*?)\n```/) || [])[1] || "";

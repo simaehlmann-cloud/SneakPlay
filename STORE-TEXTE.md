@@ -42,23 +42,23 @@ hochstapler,imposter,partyspiel,spieleabend,schule,unterricht,mathe,englisch,erk
 
 **Beschreibung**
 ```
-Ein Handy, eine Runde, null Anmeldung: SneakPlay ist das Spiel zum Weiterreichen – für Partys und Spieleabende mit Freunden und Familie genauso wie für den Unterricht, Vertretungsstunden und Klassenfahrten. Modus wählen, Namen oder Teams eintragen, Handy reihum geben und loslegen.
+Ein Handy, eine Runde, null Anmeldung: SneakPlay ist das Spiel zum Weiterreichen – für Partys und Spieleabende mit Freunden und Familie genauso wie für den Unterricht, Vertretungsstunden und Klassenfahrten. Spiel wählen, Namen oder Teams eintragen, Handy reihum geben, los!
 
 ZWEI BEREICHE: FREIZEIT UND SCHULE
 Oben auf der Startseite umschalten: In der Freizeit gibt es Begriffe aus Alltag, Essen, Tieren, Musik, Sport und mehr. In der Schule gibt es Karten für Mathe, Deutsch und Englisch nach Klassenstufe sowie unterrichtstaugliche Themen und Missionen. Jeder Bereich merkt sich seine eigene Auswahl.
 
 VIER SPIELMODI
 
-🎭 Hochstapler
+Hochstapler
 Alle bekommen denselben geheimen Begriff – nur der Hochstapler nicht. Reihum nennt jeder ein passendes Wort. Wer blufft? Wird der Hochstapler entlarvt, darf er noch raten: Trifft er den Begriff, klaut er den Sieg. Drei Varianten: Der Hochstapler sieht die Kategorie, einen ähnlichen Begriff (und weiß selbst nicht, dass er der Hochstapler ist) oder gar nichts. Auf Wunsch mit zwei Hochstaplern und einem „Ahnungslosen“.
 
-🗣️ Erklär’s!
+Erklär’s!
 Begriffe erklären, ohne die vier verbotenen Wörter zu sagen – in 2 bis 4 Teams auf Zeit. Erraten, verboten oder überspringen mit einem Tipp; Fehltipps lassen sich nach jedem Durchgang korrigieren.
 
-🎯 Geheime Missionen
+Geheime Missionen
 Ihr plaudert über ein lockeres Thema – und fast jeder hat eine heimliche Aufgabe: ein bestimmtes Wort unterbringen, mit einer Gegenfrage antworten … Eine Person hat gar keine Mission und blufft nur. Findet sie!
 
-💣 Wort-Bombe
+Wort-Bombe
 Die App zeigt eine Aufgabe wie „Ein Tier“ oder „Eine Primzahl“. Begriff nennen, Handy weitergeben! Die Bombe tickt immer schneller, niemand weiß, wann sie hochgeht. Einzeln oder in Teams.
 
 FÜR DEN UNTERRICHT
@@ -130,16 +130,16 @@ Switch at the top of the home screen: free time brings words from everyday life,
 
 FOUR GAME MODES
 
-🎭 Imposter
+Imposter
 Everyone gets the same secret word – except the imposter. Going round the circle, everyone says one matching word. Who is bluffing? If the imposter is caught, they get one last guess: hit the word and they steal the win. Three variants: the imposter sees the category, a similar word (and may not even know they’re the imposter) or nothing at all. Optionally with two imposters and a “clueless” player.
 
-🗣️ Explain it!
+Explain it!
 Explain words without saying the four forbidden ones – in 2 to 4 teams against the clock. Guessed, forbidden or skip with one tap; mistakes can be corrected after every turn.
 
-🎯 Secret Missions
+Secret Missions
 You chat about a casual topic – and almost everyone has a hidden task: slip in a certain word, answer with a question … One player has no mission at all and is only bluffing. Find them!
 
-💣 Word Bomb
+Word Bomb
 The app shows a task like “An animal” or “A prime number”. Say a word, pass the phone! The bomb ticks faster and faster, and nobody knows when it will go off. Individually or in teams.
 
 FOR THE CLASSROOM

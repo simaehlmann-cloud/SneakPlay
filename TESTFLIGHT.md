@@ -167,7 +167,7 @@ verbraucht keine Build-Nummer. Der Lauf dauert etwa 15–25 Minuten. Im Protokol
 siehst du:
 
 - **„Erzeugtes Projekt bestätigen“**: Bundle-ID `de.sneakplay.app`, Version
-  1.0.0 / Build 10000, Kamera- und Foto-Texte gesetzt, „iPhone und iPad“,
+  1.0.0 / Build 100xx (zählt automatisch hoch), Kamera- und Foto-Texte gesetzt, „iPhone und iPad“,
   „Ausrichtungen: iPhone 1, iPad 4“, alle
   Plugins installiert, StoreKit eingebunden, Privacy-Manifest vorhanden
 - **„Signierschlüssel einrichten“**: „Profil gilt für: 7LPBMXVK6D.de.sneakplay.app“
@@ -227,7 +227,7 @@ Schick mir bei Auffälligkeiten einen Screenshot.
 | `No signing certificate "iOS Distribution" found` / `doesn't include signing certificate` | Profil und .p12 passen nicht zusammen: Profil mit genau diesem Zertifikat neu erzeugen (Schritt 3, **Edit**) |
 | `Authentication failed` / `401` beim Hochladen | `ASC_KEY_ID`, `ASC_ISSUER_ID` oder `ASC_KEY_P8` falsch; beim .p8 die BEGIN/END-Zeilen mitkopieren |
 | `No suitable application records were found` | Schritt 2 fehlt, oder die Bundle-ID dort ist nicht `de.sneakplay.app` |
-| `The bundle version must be higher than the previously uploaded version` | Build-Nummer schon benutzt: `ios-CFBundleVersion` in `config.xml` erhöhen (10000 → 10001) |
+| `The bundle version must be higher than the previously uploaded version` | Build-Nummer schon benutzt. Seit dem Update zählt der Workflow sie bei jedem manuellen Start selbst hoch (`config.xml`-Wert + Laufnummer). Tritt der Fehler trotzdem auf, `ios-CFBundleVersion` in der `config.xml` um 100 erhöhen |
 | Kaufknopf zeigt „Preis wird geladen …“ | In-App-Kauf nicht „Bereit zur Einreichung“ oder Vertrag nicht aktiv (Schritt 5); nach der Änderung bis zu 1 Stunde warten |
 
 ---
@@ -278,7 +278,10 @@ MatheSnack und Drawmory eintragen.
 
 ## Nächste Builds
 
-Vor jedem weiteren manuellen Start `ios-CFBundleVersion` in der `config.xml`
-erhöhen (10000 → 10001 …), denn jede Nummer ist bei Apple dauerhaft belegt. Bei
-einer neuen Version auch `version`, `android-versionCode` in der `config.xml` und
-`APP_VERSION` in `www/js/core.js`. `validate.js` meldet Abweichungen.
+Einfach erneut **Run workflow** starten. Die Build-Nummer zählt der Workflow
+selbst hoch: Wert aus der `config.xml` plus laufende Nummer des Workflows. Im
+Protokoll unter „Cordova-Projekt aufbauen“ steht die Nummer, zum Beispiel
+„Build-Nummer für diesen Upload: 10012“. Bei einer neuen Version (zum Beispiel
+1.0.1) änderst du `version`, `android-versionCode` und `ios-CFBundleVersion` in
+der `config.xml` sowie `APP_VERSION` in `www/js/core.js`. `validate.js` meldet
+Abweichungen.

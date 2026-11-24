@@ -94,6 +94,7 @@ jobs:
           mkdir -p build/res/ios build/res/android
           cp res/ios/* build/res/ios/
           cp res/android/* build/res/android/
+          cp -r hooks build/hooks
 
           # Die App steht vollständig in www/ (docs/ ist nur die Pages-Infoseite).
           rm -rf build/www/*
@@ -105,6 +106,8 @@ jobs:
           cd build
           mkdir -p platforms
           cordova platform add "ios@${CORDOVA_IOS}"
+          # Vorbereiten löst hooks/ios-orientation.js aus (iPad-Ausrichtungen).
+          cordova prepare ios
           cordova plugin ls
 
       # Die config.xml erklärt nur die Absicht. Was Xcode baut, steht in der
@@ -167,11 +170,20 @@ jobs:
             fi
           done
 
-          # Nur iPhone (target-device handset) – sonst wären iPad-Bildschirmfotos Pflicht.
-          if grep -q 'TARGETED_DEVICE_FAMILY = "1,2"' "$PBX" || grep -q 'TARGETED_DEVICE_FAMILY = 2' "$PBX"; then
-            echo "::error::Das Projekt zielt auf iPad. target-device=handset in der config.xml prüfen."; FEHLER=1
+          # iPhone und iPad (target-device universal). Der iPad-Upload verlangt
+          # alle vier Ausrichtungen, sonst lehnt App Store Connect ihn ab.
+          if grep -q 'TARGETED_DEVICE_FAMILY = "1,2"' "$PBX"; then
+            echo "Gerätefamilie:    iPhone und iPad"
           else
-            echo "Gerätefamilie:    nur Handy"
+            echo "::error::Das Projekt zielt nicht auf iPhone und iPad. target-device=universal in der config.xml prüfen."; FEHLER=1
+          fi
+          ORI_PHONE=$(/usr/libexec/PlistBuddy -c "Print :UISupportedInterfaceOrientations" "$PLIST" 2>/dev/null | grep -c UIInterfaceOrientation || true)
+          ORI_PAD=$(/usr/libexec/PlistBuddy -c "Print :UISupportedInterfaceOrientations~ipad" "$PLIST" 2>/dev/null | grep -c UIInterfaceOrientation || true)
+          echo "Ausrichtungen:    iPhone $ORI_PHONE, iPad $ORI_PAD"
+          [ "$ORI_PAD" = "4" ] || { echo "::error::iPad braucht alle vier Ausrichtungen (hooks/ios-orientation.js)."; FEHLER=1; }
+          [ "$ORI_PHONE" = "1" ] || { echo "::error::iPhone soll nur hochkant laufen (hooks/ios-orientation.js)."; FEHLER=1; }
+          if /usr/libexec/PlistBuddy -c "Print :UIRequiresFullScreen" "$PLIST" >/dev/null 2>&1; then
+            echo "::warning::UIRequiresFullScreen ist gesetzt – auf dem iPad ohne Split View."
           fi
 
           for P in cordova-plugin-purchase cordova-plugin-statusbar cordova-plugin-x-socialsharing cordova-plugin-insomnia cordova-plugin-android-permissions; do

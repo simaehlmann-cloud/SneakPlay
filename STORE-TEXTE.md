@@ -27,22 +27,22 @@ Für Freizeit und Schule
 
 **Kurzbeschreibung** (nur Play Console)
 ```
-Bluffen, Erklären, Missionen & Wort-Bombe – Partyspiel für Handy und Unterricht.
+Bluffen, Erklären, Missionen & Wort-Bombe – für Partys, Spieleabend und Schule
 ```
 
 **Werbetext** (nur App Store Connect)
 ```
-Ein Handy für alle: geheime Rollen aufdecken, Begriffe ohne verbotene Wörter erklären, Missionen erfüllen – für Spieleabende und den Matheunterricht.
+Ein Handy für alle: geheime Rollen aufdecken, Begriffe ohne verbotene Wörter erklären, Missionen erfüllen – für Partys, Spieleabende und den Unterricht.
 ```
 
 **Schlüsselwörter** (nur App Store Connect)
 ```
-hochstapler,imposter,partyspiel,klassenspiel,mathe,unterricht,erklären,bluff,teamspiel,offline
+hochstapler,imposter,partyspiel,spieleabend,schule,unterricht,mathe,englisch,erklären,bluff
 ```
 
 **Beschreibung**
 ```
-Ein Handy, eine Runde, null Anmeldung: SneakPlay ist das Spiel zum Weiterreichen – für Freunde, Familie, Vereinsabende und den Unterricht. Modus wählen, Namen oder Teams eintragen, Handy reihum geben und loslegen.
+Ein Handy, eine Runde, null Anmeldung: SneakPlay ist das Spiel zum Weiterreichen – für Partys und Spieleabende mit Freunden und Familie genauso wie für den Unterricht, Vertretungsstunden und Klassenfahrten. Modus wählen, Namen oder Teams eintragen, Handy reihum geben und loslegen.
 
 ZWEI BEREICHE: FREIZEIT UND SCHULE
 Oben auf der Startseite umschalten: In der Freizeit gibt es Begriffe aus Alltag, Essen, Tieren, Musik, Sport und mehr. In der Schule gibt es Karten für Mathe, Deutsch und Englisch nach Klassenstufe sowie unterrichtstaugliche Themen und Missionen. Jeder Bereich merkt sich seine eigene Auswahl.
@@ -113,17 +113,17 @@ Bluff, explain, secret missions & word bomb – for parties and the classroom.
 
 **Promotional text** (App Store Connect only)
 ```
-One phone for everyone: reveal secret roles, explain words without the forbidden ones, complete missions – for game nights and maths lessons.
+One phone for everyone: reveal secret roles, explain words without the forbidden ones, complete missions – for parties, game nights and the classroom.
 ```
 
 **Keywords** (App Store Connect only)
 ```
-imposter,party game,classroom,maths,explain words,team game,bluff,spy,game night,offline
+imposter,party game,game night,classroom,school,maths,explain words,team game,bluff,offline
 ```
 
 **Description**
 ```
-One phone, one round, no sign-up: SneakPlay is the pass-around game for friends, family, clubs and the classroom. Pick a mode, enter names or teams, pass the phone around and play.
+One phone, one round, no sign-up: SneakPlay is the pass-around game for parties and game nights with friends and family – and just as much for lessons, cover lessons and class trips. Pick a mode, enter names or teams, pass the phone around and play.
 
 TWO AREAS: FREE TIME AND SCHOOL
 Switch at the top of the home screen: free time brings words from everyday life, food, animals, music, sport and more. School brings maths cards by school year plus classroom-friendly topics and missions. Each area remembers its own selection.
@@ -157,7 +157,7 @@ HOW IT WORKS
 • Awards after every round such as “Master bluffer”, “Poker face” or “Rescue genius”, plus a scoreboard for the whole evening
 
 CONTENT
-More than 180 words in nine categories, more than 180 explain cards with four forbidden words each (over 100 of them from maths), 40 chat topics, more than 60 missions and more than 90 bomb tasks.
+More than 180 words in nine free-time categories, more than 180 explain cards with four forbidden words each (over 100 of them from maths), 40 chat topics, 70 missions and more than 90 bomb tasks.
 
 FREE AND FULL VERSION
 Imposter is free for good – with all categories, including school and maths. Own cards, QR sharing, teams and school mode are free too. Secret Missions, Explain it! and Word Bomb can each be tried twice and played without limits with the full version (one-time in-app purchase, no subscription).
@@ -238,7 +238,7 @@ aufwendiger – das lässt sich mit einem späteren Update nachholen.
 ### Prüfungsanmerkungen (für beide Stores, Englisch)
 
 ```
-SneakPlay is a pass-and-play party game for one phone. Players enter nicknames, pick a mode and pass the device around. Each player presses and holds the card to see their secret role; releasing hides it again. No account, no server, no ads, no data collection – everything is stored locally. Designed for game nights and classroom use (maths cards by school year, team play, school mode with PIN).
+SneakPlay is a pass-and-play party game for one phone. Players enter nicknames, pick a mode and pass the device around. Each player presses and holds the card to see their secret role; releasing hides it again. No account, no server, no ads, no data collection – everything is stored locally. Designed for parties, game nights and classroom use. A switch at the top of the home screen chooses the area: "Free time" (party words) or "School" (maths cards by school year; in the German version also German and English cards). School mode with PIN locks the app to the School area.
 
 In-app purchase: "Imposter" is free. The other three modes ("Secret missions", "Explain it!", "Word bomb") can each be played twice as a trial and are then unlocked by the one-time, non-consumable purchase "Full version" (de.sneakplay.app.vollversion). The full version screen is under Settings (gear icon) → "See full version", and it also appears after the trial rounds. "Restore purchases" is on that screen. In school mode (Settings → "Turn on school mode", any PIN with 4–6 digits) purchase buttons are hidden.
 
@@ -269,3 +269,7 @@ Im Ordner `store-assets/` (nicht Teil der App, erzeugt mit
 
 Das 1024er Symbol für App Store Connect liegt in `res/ios/icon-1024.png`
 und kommt ohnehin mit dem Build.
+
+**App-Vorschauvideos** (optional, empfohlen) liegen in `SneakPlay-Videos.zip`
+bzw. werden mit `tools/video` erzeugt: `app-vorschau-iphone-de/en.mp4`
+(886 × 1920) und `app-vorschau-ipad-de/en.mp4` (1200 × 1600), je 28 s.

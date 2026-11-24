@@ -91,6 +91,16 @@ jobs:
           set -e
           cordova create build "$APP_ID" "$APP_NAME"
           cp config.xml build/config.xml
+
+          # Build-Nummer: Jede hochgeladene Nummer ist bei Apple dauerhaft belegt.
+          # Bei manuellem Start zählt sie deshalb automatisch hoch:
+          # Wert aus der config.xml + laufende Nummer dieses Workflows.
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            BASIS=$(grep -o 'ios-CFBundleVersion="[0-9]*"' config.xml | cut -d'"' -f2)
+            NR=$(( BASIS + ${{ github.run_number }} ))
+            perl -pi -e "s/ios-CFBundleVersion=\"[0-9]*\"/ios-CFBundleVersion=\"$NR\"/" build/config.xml
+            echo "Build-Nummer für diesen Upload: $NR (config.xml $BASIS + Lauf ${{ github.run_number }})"
+          fi
           mkdir -p build/res/ios build/res/android
           cp res/ios/* build/res/ios/
           cp res/android/* build/res/android/
@@ -329,9 +339,8 @@ jobs:
       # Drei weitere Secrets (dieselben Werte wie bei MatheSnack sind erlaubt,
       # der Schlüssel gilt für das ganze Konto):
       #   ASC_KEY_ID, ASC_ISSUER_ID, ASC_KEY_P8
-      # Nur bei manuellem Start: Jede hochgeladene Build-Nummer ist dauerhaft
-      # belegt. Vor dem nächsten Upload ios-CFBundleVersion in der config.xml
-      # anheben – validate.js prüft, dass Version und Build zusammenpassen.
+      # Nur bei manuellem Start. Die Build-Nummer zählt dabei automatisch hoch
+      # (siehe „Cordova-Projekt aufbauen“), ein Anheben von Hand ist nicht nötig.
       - name: In App Store Connect hochladen
         if: steps.signieren.outputs.vorhanden == 'true' && github.event_name == 'workflow_dispatch'
         working-directory: build

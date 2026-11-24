@@ -54,6 +54,10 @@ const ok = (c, m) => { if (c) console.log("✓ " + m); else { fehler++; console.
 
   /* ---------- Startseite ---------- */
   await fresh();
+  ok(await page.isVisible(".worldpick") && !(await page.isVisible("text=Willkommen")), "Erster Start: Frage „Wo spielt ihr?“");
+  ok(await page.evaluate(() => !document.querySelector('[data-act="cat"][data-v="m_space"]')), "Ohne Wahl: keine Mathe-Kategorien");
+  await page.click('.worldpick [data-v="free"]');
+  ok(await page.isVisible(".worldsw") && !(await page.isVisible(".worldpick")) && await page.evaluate(() => world() === "free"), "Bereich Freizeit gewählt, Umschalter sichtbar");
   ok(await page.isVisible("text=Willkommen"), "Erster Start: Willkommenshinweis");
   ok(await page.isDisabled('[data-act="start"]'), "Ohne Spieler kein Start");
   await act("quick");
@@ -252,6 +256,15 @@ const ok = (c, m) => { if (c) console.log("✓ " + m); else { fehler++; console.
   await page.evaluate(() => goHome());
   await act("lang", "de");
   await act("mode", "imposter");
+  await act("world", "school");
+  ok(await page.evaluate(() => isSchool() && !!document.querySelector('[data-act="cat"][data-v="m_space"]') && !!document.querySelector('[data-act="level"]')), "Bereich Schule: Mathe-Kategorien und Niveau");
+  ok(await page.evaluate(() => { const s = opts("imp", DEF_IMP).cats.join(); store.set("world", "free"); const f = opts("imp", DEF_IMP).cats.join(); store.set("world", "school"); return s !== f && /m_/.test(s) && !/m_/.test(f); }), "Bereiche haben getrennte Auswahl");
+  ok(await page.evaluate(() => { store.set("world", "free"); const r = { mis: missionContent().key, bomb: bombPool().every(p => !BOMB_MATH.de.some(([q]) => q === p)), exp: !explainPool(["m_numbers", "ex_food"]).some(c => c.deck === "m_numbers") };
+    mode(); store.set("mode", "explain"); goHome(); r.noMath = !document.querySelector('[data-act="deck"][data-v="m_numbers"]');
+    store.set("mode", "bomb"); goHome(); r.noSrc = !document.querySelector('[data-act="bombSrc"]');
+    store.set("world", "school"); r.misS = missionContent().key; goHome(); r.src = !!document.querySelector('[data-act="bombSrc"]');
+    store.set("mode", "imposter"); goHome(); return JSON.stringify(r); }) === JSON.stringify({ mis: "g", bomb: true, exp: true, noMath: true, noSrc: true, misS: "s", src: true }), "Freizeit ohne Mathe, Schule mit Mathe-Aufgaben und Schulthemen");
+  ok(await page.evaluate(() => { store.set("school", true); store.set("world", "free"); goHome(); const r = isSchool() && document.querySelector('.worldsw [data-v="free"]').disabled; store.set("school", false); store.set("world", "school"); goHome(); return r; }), "Schulmodus (PIN) sperrt auf Schule");
   while (await page.$('[data-act="cat"][aria-checked="true"]')) await page.click('[data-act="cat"][aria-checked="true"]');
   await act("cat", "m_space");
   ok(await page.isVisible('[data-act="level"]'), "Niveau-Auswahl erscheint bei Mathe-Kategorien");

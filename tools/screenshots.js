@@ -27,7 +27,7 @@ const NAMES = { de: ["Anna", "Ben", "Cleo", "Dana", "Emil", "Finn"], en: ["Amy",
       await page.evaluate(([lang, names]) => {
         localStorage.clear();
         const set = (k, v) => localStorage.setItem("sneakplay." + k, JSON.stringify(v));
-        set("lang", lang); set("theme", "dark"); set("pro", true); set("coach", { imposter: true, missions: true, explain: true, bomb: true }); set("players", names); set("seenRules", true); set("sound", false);
+        set("lang", lang); set("theme", "dark"); set("pro", true); set("coach", { imposter: true, missions: true, explain: true, bomb: true }); set("players", names); set("seenRules", true); set("sound", false); set("world", "free");
         set("imp", { cats: ["food", "everyday", "animals", "music"], imps: 1, clueless: false, hint: true, timer: 3, vote: "secret" });
       }, [lang, NAMES[lang]]);
       await page.goto(ROOT + "/www/index.html");
@@ -43,14 +43,14 @@ const NAMES = { de: ["Anna", "Ben", "Cleo", "Dana", "Emil", "Finn"], en: ["Amy",
 
       /* Zahlen-Hochstapler: gleichwertige Darstellung */
       await page.evaluate(() => goHome());
-      await page.evaluate(() => { localStorage.setItem("sneakplay.imp", JSON.stringify({ cats: ["m_equiv_num"], imps: 1, clueless: false, hint: "similar", timer: 3, vote: "secret" })); localStorage.setItem("sneakplay.level", "1"); });
+      await page.evaluate(() => { localStorage.setItem("sneakplay.world", JSON.stringify("school")); localStorage.setItem("sneakplay.imp.s", JSON.stringify({ cats: ["m_equiv_num"], imps: 1, clueless: false, hint: "similar", timer: 3, vote: "secret" })); localStorage.setItem("sneakplay.level", "1"); });
       await act("start");
       await page.evaluate(() => { const g = EQUIV[LANG].m_equiv_num.groups[2]; R.reps = g.reps; R.role = R.role.map((r, i) => (i === 3 ? "imp" : "crew")); R.val = R.role.map((r, i) => (r === "crew" ? g.reps[(i + 1) % g.reps.length] : "")); R.alt = g.near[0]; R.word = g.reps[0]; });
       await hold(); await shot(3); await page.mouse.up();
 
       /* Erklär’s! mit Mathe-Karte */
       await page.evaluate(() => goHome());
-      await page.evaluate(() => { localStorage.setItem("sneakplay.exp", JSON.stringify({ decks: ["m_space"], time: 60, rounds: 3, penalty: true })); localStorage.setItem("sneakplay.level", "2"); });
+      await page.evaluate(() => { localStorage.setItem("sneakplay.exp.s", JSON.stringify({ decks: ["m_space"], time: 60, rounds: 3, penalty: true })); localStorage.setItem("sneakplay.level", "2"); });
       await act("mode", "explain");
       await act("start");
       await act("exGo");
@@ -58,6 +58,7 @@ const NAMES = { de: ["Anna", "Ben", "Cleo", "Dana", "Emil", "Finn"], en: ["Amy",
       await shot("3b");
 
       /* Missionen */
+
       await page.evaluate(() => goHome());
       await act("mode", "missions");
       await act("start");

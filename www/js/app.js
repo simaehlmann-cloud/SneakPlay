@@ -25,12 +25,19 @@ const DEF_IMP = { cats: ["food", "everyday", "animals"], imps: 1, clueless: fals
 const DEF_MIS = { timer: 5, vote: "group" };
 const DEF_EXP = { decks: ["ex_everyday", "ex_animals", "ex_food"], time: 60, rounds: 3, penalty: true };
 const DEF_BOMB = { len: "mid", src: "general", teams: false };
+/* Bereiche: „Freizeit“ und „Schule“ haben getrennte Auswahl und Vorgaben */
+const DEF_SCHOOL = { imp: { cats: ["m_numbers", "m_space", "m_measures"] }, exp: { decks: ["m_numbers", "m_measures", "ex_school"] }, bomb: { src: "mix" } };
+function isMath(id) { return DECK_MATH.includes(id) || EQUIV_DECKS.includes(id); }
+function world() { const w = store.get("world", null); return w === "school" || w === "free" ? w : null; }
+function isSchool() { return school() || world() === "school"; }
+function wkey(key) { return isSchool() && DEF_SCHOOL[key] ? key + ".s" : key; }
 function opts(key, def) {
-  const o = Object.assign({}, def, store.get(key, {}));
+  const k = wkey(key);
+  const o = Object.assign({}, def, k !== key ? DEF_SCHOOL[key] : {}, store.get(k, {}));
   if (key === "imp" && typeof o.hint === "boolean") o.hint = o.hint ? "cat" : "none";   // ältere Fassung
   return o;
 }
-function setOpt(key, def, patch) { store.set(key, Object.assign(opts(key, def), patch)); }
+function setOpt(key, def, patch) { store.set(wkey(key), Object.assign(opts(key, def), patch)); }
 function players() {
   const p = store.get("players", []);
   return Array.isArray(p) ? p.filter(x => typeof x === "string" && x).slice(0, MAX_PLAYERS) : [];
@@ -248,7 +255,7 @@ function deckIcon(id) { return id.startsWith("u:") ? "✏️" : (DECK_ICON[id] |
 /* Hochstapler: Wortkategorien, Schule/Mathe (nach Niveau), eigene Karten */
 function imposterPool(cats) {
   const o = cats || opts("imp", DEF_IMP).cats, L = lists(), pool = [], lv = level();
-  o.forEach(id => {
+  o.filter(id => isSchool() || !isMath(id)).forEach(id => {
     if (id.startsWith("u:")) {
       const l = L.find(x => "u:" + x.id === id);
       if (l) l.cards.forEach(c => pool.push({ cat: id, name: l.name, icon: "✏️", word: c.w, s: "" }));
@@ -268,7 +275,7 @@ function imposterPool(cats) {
 /* Erklär-Modus: Karten mit verbotenen Wörtern */
 function explainPool(decks) {
   const o = decks || opts("exp", DEF_EXP).decks, L = lists(), pool = [], lv = level();
-  o.forEach(id => {
+  o.filter(id => isSchool() || !isMath(id)).forEach(id => {
     if (id.startsWith("u:")) {
       const l = L.find(x => "u:" + x.id === id);
       if (l) l.cards.forEach(c => pool.push({ deck: id, icon: "✏️", w: c.w, f: c.f }));
@@ -279,12 +286,12 @@ function explainPool(decks) {
   return pool;
 }
 function bombPool() {
-  const src = opts("bomb", DEF_BOMB).src, lv = level();
+  const src = isSchool() ? opts("bomb", DEF_BOMB).src : "general", lv = level();
   const gen = bombPrompts(LANG), math = BOMB_MATH[LANG].filter(([, l]) => levelOk(l, lv)).map(([p]) => p);
   return src === "math" ? math : src === "mix" ? gen.concat(math) : gen;
 }
 function missionContent() {
-  return school() ? { topics: SCHOOL_TOPICS[LANG], missions: SCHOOL_MISSIONS[LANG], key: "s" } : { topics: CONTENT[LANG].topics, missions: CONTENT[LANG].missions, key: "g" };
+  return isSchool() ? { topics: SCHOOL_TOPICS[LANG], missions: SCHOOL_MISSIONS[LANG], key: "s" } : { topics: CONTENT[LANG].topics, missions: CONTENT[LANG].missions, key: "g" };
 }
 
 /* =====================================================================
@@ -307,19 +314,23 @@ function customChips(sel, act, needForbidden) {
     return chip("u:" + l.id, sel.includes("u:" + l.id), act, l.name + " (" + n + ")");
   }).join("") + `<button type="button" class="chip new" data-act="lists">＋ ${esc(t("lists.manage"))}</button>`;
 }
-function catSections(sel, act, general, withSchoolMath) {
-  const mathOn = sel.some(id => DECK_MATH.includes(id) || EQUIV_DECKS.includes(id));
-  return `<section class="card"><h2>${esc(t("cats.title"))}</h2>
-    <div class="grp">${esc(t("cats.general"))}</div><div class="chips">${general.map(id => chip(id, sel.includes(id), act, deckName(id))).join("")}</div>
-    ${withSchoolMath ? `<div class="grp">${esc(t("cats.math"))}</div><div class="chips">${(withSchoolMath === true ? DECK_MATH : withSchoolMath).map(id => chip(id, sel.includes(id), act, deckName(id))).join("")}</div>` : ""}
+function catSections(sel, act, general, math) {
+  const chips = ids => `<div class="chips">${ids.map(id => chip(id, sel.includes(id), act, deckName(id))).join("")}</div>`;
+  if (isSchool()) return `<section class="card"><h2>${esc(t("cats.title"))}</h2>
+    <div class="grp">${esc(t("cats.math"))}</div>${chips(math)}
+    ${levelSeg()}
+    <div class="grp">${esc(t("cats.more"))}</div>${chips(general)}
     <div class="grp">${esc(t("cats.own"))}</div><div class="chips">${customChips(sel, act)}</div>
-    ${mathOn || act === "deck" ? levelSeg() : ""}
+  </section>`;
+  return `<section class="card"><h2>${esc(t("cats.title"))}</h2>
+    <div class="grp">${esc(t("cats.general"))}</div>${chips(general.filter(id => !isMath(id)))}
+    <div class="grp">${esc(t("cats.own"))}</div><div class="chips">${customChips(sel, act)}</div>
   </section>`;
 }
 function modeOptions(m, n) {
   if (m === "imposter") {
     const o = opts("imp", DEF_IMP);
-    return catSections(o.cats, "cat", CAT_ORDER.concat("ex_school"), DECK_MATH.concat(EQUIV_DECKS)) + `
+    return catSections(o.cats, "cat", isSchool() ? ["ex_school"].concat(CAT_ORDER) : CAT_ORDER, DECK_MATH.concat(EQUIV_DECKS)) + `
     <section class="card"><h2>${esc(t("opts.title"))}</h2>
       <div class="opt col"><div class="lbl"><b>${esc(t("opt.hint"))}</b><small>${esc(t("opt.hint." + o.hint))}</small></div>
         ${seg(t("opt.hint"), [["cat", t("opt.hint.cat.s")], ["similar", t("opt.hint.similar.s")], ["none", t("opt.hint.none.s")]], o.hint, "hint")}</div>
@@ -336,7 +347,7 @@ function modeOptions(m, n) {
   if (m === "missions") {
     const o = opts("mis", DEF_MIS);
     return `<section class="card"><h2>${esc(t("opts.title"))}</h2>
-      ${school() ? `<p class="muted small" style="margin-top:0">🏫 ${esc(t("school.missions"))}</p>` : ""}
+      ${isSchool() ? `<p class="muted small" style="margin-top:0">🏫 ${esc(t("school.missions"))}</p>` : ""}
       <div class="opt col"><div class="lbl"><b>${esc(t("opt.talk"))}</b><small>${esc(t("opt.talk.hint"))}</small></div>
         ${seg(t("opt.talk"), [[3, "3 min"], [5, "5 min"], [8, "8 min"]], o.timer, "misTimer")}</div>
       <div class="opt col"><div class="lbl"><b>${esc(t("opt.vote"))}</b><small>${esc(t("opt.vote.hint"))}</small></div>
@@ -345,7 +356,7 @@ function modeOptions(m, n) {
   }
   if (m === "explain") {
     const o = opts("exp", DEF_EXP);
-    return catSections(o.decks, "deck", DECK_GENERAL, true) + `
+    return catSections(o.decks, "deck", isSchool() ? ["ex_school"].concat(DECK_GENERAL.filter(id => id !== "ex_school")) : DECK_GENERAL, DECK_MATH) + `
     <section class="card"><h2>${esc(t("opts.title"))}</h2>
       <div class="opt col"><div class="lbl"><b>${esc(t("opt.exTime"))}</b></div>
         ${seg(t("opt.exTime"), [[60, "60 s"], [90, "90 s"], [120, "120 s"]], o.time, "exTime")}</div>
@@ -357,9 +368,9 @@ function modeOptions(m, n) {
   }
   const o = opts("bomb", DEF_BOMB);
   return `<section class="card"><h2>${esc(t("opts.title"))}</h2>
-    <div class="opt col"><div class="lbl"><b>${esc(t("opt.bombSrc"))}</b></div>
+    ${isSchool() ? `<div class="opt col"><div class="lbl"><b>${esc(t("opt.bombSrc"))}</b></div>
       ${seg(t("opt.bombSrc"), [["general", t("opt.bombSrc.general")], ["math", t("opt.bombSrc.math")], ["mix", t("opt.bombSrc.mix")]], o.src, "bombSrc")}</div>
-    ${o.src !== "general" ? levelSeg() : ""}
+    ${o.src !== "general" ? levelSeg() : ""}` : ""}
     <div class="opt"><div class="lbl"><b>${esc(t("opt.bombTeams"))}</b><small>${esc(t("opt.bombTeams.hint"))}</small></div>
       ${sw(t("opt.bombTeams"), o.teams, "bombTeams")}</div>
     <div class="opt col"><div class="lbl"><b>${esc(t("opt.fuse"))}</b><small>${esc(t("opt.fuse.hint"))}</small></div>
@@ -399,14 +410,24 @@ function teamsCard() {
     <p class="muted small" style="margin-bottom:0">${esc(t("teams.hint"))}</p>
   </section>`;
 }
+function worldSwitch() {
+  const w = isSchool() ? "school" : "free", lock = school();
+  return `<div class="worldsw" role="radiogroup" aria-label="${esc(t("world.label"))}">
+    <button type="button" role="radio" aria-checked="${w === "free"}" data-act="world" data-v="free"${lock ? " disabled" : ""}>🎉 ${esc(t("world.free"))}</button>
+    <button type="button" role="radio" aria-checked="${w === "school"}" data-act="world" data-v="school">🏫 ${esc(t("world.school"))}${lock ? " 🔒" : ""}</button></div>
+    ${lock ? `<p class="muted small center" style="margin:-6px 0 12px">${esc(t("school.active"))}</p>` : ""}`;
+}
 function screenHome(keep) {
   const m = mode(), teamMode = usesTeams(m), n = players().length;
   const why = whyNot(m);
   const first = !store.get("seenRules", false);
   show(`<div class="homebar">${langSwitch()}<span class="hbtns"><button type="button" class="iconbtn" data-act="help" aria-label="${esc(t("help.title"))}">❓</button><button type="button" class="iconbtn" data-act="settings" aria-label="${esc(t("set.title"))}">⚙️</button></span></div>
-  <section class="hero"><img src="icon-192.png" alt="" width="76" height="76"><h1>SneakPlay</h1><p>${esc(t("home.tagline"))}</p>
-    ${school() ? `<p class="badge">🏫 ${esc(t("school.active"))}</p>` : ""}</section>
-  ${first ? `<section class="card"><p style="margin-top:0">${esc(t("home.welcome"))}</p>
+  <section class="hero"><img src="icon-192.png" alt="" width="76" height="76"><h1>SneakPlay</h1><p>${esc(isSchool() ? t("home.tagline.school") : t("home.tagline"))}</p></section>
+  ${world() || school() ? worldSwitch() : `<section class="card worldpick"><h2>${esc(t("world.ask"))}</h2>
+    <button type="button" class="wbtn" data-act="world" data-v="free"><span aria-hidden="true">🎉</span><span><b>${esc(t("world.free"))}</b><small>${esc(t("world.free.sub"))}</small></span></button>
+    <button type="button" class="wbtn" data-act="world" data-v="school"><span aria-hidden="true">🏫</span><span><b>${esc(t("world.school"))}</b><small>${esc(t("world.school.sub"))}</small></span></button>
+    <p class="muted small" style="margin-bottom:0">${esc(t("world.later"))}</p></section>`}
+  ${first && world() ? `<section class="card"><p style="margin-top:0">${esc(t("home.welcome"))}</p>
     <button type="button" class="btn primary wide" data-act="practice" data-v="imposter">▶ ${esc(t("home.demo"))}</button>
     <button type="button" class="btn wide" style="margin-top:8px" data-act="help">❓ ${esc(t("help.title"))}</button></section>` : ""}
   <section class="card"><h2>${esc(t("mode.title"))}</h2><div class="modes" role="radiogroup" aria-label="${esc(t("mode.title"))}">
@@ -475,7 +496,9 @@ function beginRound(m, practice = false) {
   const P = practice ? practicePlayers(m) : players(), n = P.length;
   if (m === "imposter") {
     const o = practice ? Object.assign({}, DEF_IMP, { imps: 1, clueless: false, hint: "cat", timer: 0, vote: "group" }) : opts("imp", DEF_IMP);
-    let pool = practice ? imposterPool(DEF_IMP.cats) : imposterPool();
+    const base = isSchool() ? DEF_SCHOOL.imp.cats : DEF_IMP.cats;
+    let pool = practice ? imposterPool(base) : imposterPool();
+    if (pool.length < 2) pool = imposterPool(base);
     if (pool.length < 2) pool = imposterPool(DEF_IMP.cats);
     const r = practice ? { item: pool[0] } : pickFresh(pool, x => LANG + "|" + x.cat + "|" + x.word, store.get("used.imp", []));
     if (!practice) store.set("used.imp", r.used);
@@ -504,14 +527,14 @@ function beginRound(m, practice = false) {
   } else if (m === "explain") {
     const o = practice ? { time: 45, rounds: 1, penalty: true } : opts("exp", DEF_EXP), T = teams();
     R = { mode: m, practice, pi: 0, P: T, teamMode: true, lang: LANG, time: o.time, rounds: o.rounds, penalty: o.penalty,
-      pool: practice ? explainPool(["ex_everyday"]).slice(0, 12) : explainPool(),
+      pool: practice ? explainPool([isSchool() ? "ex_school" : "ex_everyday"]).slice(0, 12) : explainPool(),
       pts: T.map(() => 0), turn: 0, state: "ready", log: [], card: null, seenGame: new Set(), best: { pts: -99, team: -1 }, learn: [] };
     screenExplain();
     return;
   } else {
     const o = practice ? { len: "short", teams: false } : opts("bomb", DEF_BOMB), teamMode = o.teams;
     R = { mode: m, practice, pi: 0, P: teamMode ? teams() : P, teamMode, lang: LANG, len: o.len,
-      pool: practice ? bombPrompts(LANG).slice(0, 5) : bombPool(), prompt: "", state: "ready", loser: null };
+      pool: practice ? (isSchool() ? BOMB_MATH[LANG].map(([p]) => p) : bombPrompts(LANG)).slice(0, 5) : bombPool(), prompt: "", state: "ready", loser: null };
     R.prompt = nextBombPrompt();
     screenBomb();
     return;
@@ -1431,6 +1454,10 @@ const ACT = {
   exRounds: v => { setOpt("exp", DEF_EXP, { rounds: +v }); screenHome(true); },
   penalty: () => { setOpt("exp", DEF_EXP, { penalty: !opts("exp", DEF_EXP).penalty }); screenHome(true); },
   fuse: v => { setOpt("bomb", DEF_BOMB, { len: v }); screenHome(true); },
+  world: v => {
+    if (school() || (v !== "free" && v !== "school")) { if (school() && v === "free") toast(t("school.locked")); return; }
+    store.set("world", v); screenHome(true);
+  },
   bombSrc: v => { setOpt("bomb", DEF_BOMB, { src: v }); screenHome(true); },
   bombTeams: () => { setOpt("bomb", DEF_BOMB, { teams: !opts("bomb", DEF_BOMB).teams }); screenHome(true); },
   start: () => startRound(),

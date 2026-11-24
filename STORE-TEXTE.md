@@ -185,8 +185,9 @@ For 2 to 16 players or whole classes in teams. In English and German, in light a
 | Preis | 3,99 € (Preisstufe, die in Deutschland 3,99 € ergibt) |
 | Familienfreigabe (App Store) | **an** |
 | Anzeigename DE / EN | `Vollversion` / `Full version` |
-| Beschreibung DE | `Alle vier Spielmodi unbegrenzt: Missionen, Erklär’s! und Wort-Bombe.` |
-| Beschreibung EN | `All four game modes without limits: Missions, Explain it! and Word Bomb.` |
+| Beschreibung App Store DE / EN (kurz, Apple-Grenze) | `Alle vier Spiele ohne Grenzen` / `All four games without limits` |
+| Beschreibung Play DE | `Alle vier Spielmodi unbegrenzt: Missionen, Erklär’s! und Wort-Bombe.` |
+| Beschreibung Play EN | `All four game modes without limits: Missions, Explain it! and Word Bomb.` |
 | Prüfungs-Screenshot | `store-assets/review-paywall-phone69-de.png` (Vollversion-Bildschirm, nur für die Prüfung) |
 
 Gratis bleibt dauerhaft: Hochstapler (alle Kategorien), eigene Karten,
@@ -228,7 +229,13 @@ aufwendiger – das lässt sich mit einem späteren Update nachholen.
 ### Prüfungsanmerkungen (für beide Stores, Englisch)
 
 ```
-SneakPlay is a pass-and-play party game for one phone. Players enter nicknames, pick a mode and pass the device around. Each player presses and holds the card to see their secret role; releasing hides it again. No account, no server, no ads, no purchases, no data collection – everything is stored locally. Designed for game nights and classroom use (maths cards by school year, team play, school mode with PIN). Imposter is free; the other three modes can each be tried twice and are unlocked by the one-time in-app purchase "Full version" (de.sneakplay.app.vollversion). "Restore purchases" is in Settings and on the full version screen. To test quickly: choose "Imposter", tap "Quick start with 4 players" → "Let's go", hold each card, tap "Seen it", then "Go to voting". "Explain it!" works with the two default teams. The camera is only used on request to read QR codes containing card sets from another device (Settings is not needed): Own lists → Receive cards → Scan QR code; images are processed on the device and never stored or sent. Language can be switched with the flags on the home screen.
+SneakPlay is a pass-and-play party game for one phone. Players enter nicknames, pick a mode and pass the device around. Each player presses and holds the card to see their secret role; releasing hides it again. No account, no server, no ads, no data collection – everything is stored locally. Designed for game nights and classroom use (maths cards by school year, team play, school mode with PIN).
+
+In-app purchase: "Imposter" is free. The other three modes ("Secret missions", "Explain it!", "Word bomb") can each be played twice as a trial and are then unlocked by the one-time, non-consumable purchase "Full version" (de.sneakplay.app.vollversion). The full version screen is under Settings (gear icon) → "See full version", and it also appears after the trial rounds. "Restore purchases" is on that screen. In school mode (Settings → "Turn on school mode", any PIN with 4–6 digits) purchase buttons are hidden.
+
+To test quickly: tap "Quick start with 4 players" → "Let’s go", press and hold each card, tap "Seen it – pass to …", then "Go to voting". The "?" next to each mode and the "?" at the top open the rules and a practice round with tips for every mode (practice rounds use fixed example cards and do not use up a trial round).
+
+Camera: only used on request to read QR codes containing card sets from another device: Own lists → Receive cards → Scan QR code. Images are processed on the device and never stored or sent. Language can be switched with the flags on the home screen.
 ```
 
 ---

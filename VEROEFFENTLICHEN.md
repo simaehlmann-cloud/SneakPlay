@@ -31,6 +31,9 @@ Heißt das Repo anders, die URLs in `STORE-TEXTE.md` anpassen.
 
 ## 2. iOS → TestFlight
 
+**Ausführliche Schritt-für-Schritt-Anleitung mit Secrets, Fehlerhilfe und
+Testliste: [`TESTFLIGHT.md`](TESTFLIGHT.md).** Kurzfassung:
+
 1. developer.apple.com → **Identifiers** → **+** → App IDs → Explicit
    `de.sneakplay.app`, Beschreibung `SneakPlay`. Keine Capabilities anhaken.
 2. **Profiles** → **+** → „App Store Connect“ → App-ID `de.sneakplay.app` →

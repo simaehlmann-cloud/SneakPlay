@@ -95,6 +95,7 @@ smoketest.js            Ablauftest im Browser (~225 Prüfungen)
 .github/workflows/      Android (APK/AAB) und iOS (TestFlight)
 STORE-TEXTE.md          Texte, Datenschutz- und Altersangaben für beide Stores
 VEROEFFENTLICHEN.md     Schritt für Schritt bis in beide Stores
+TESTFLIGHT.md           iOS: Secrets, Profil, In-App-Kauf, Upload und Test
 ```
 
 **Rechtstexte nur in `tools/make-legal.py` ändern**, dann
@@ -115,7 +116,7 @@ node tools/screenshots.js          # Store-Bildschirmfotos neu erzeugen
 
 **Android:** Actions → *Build SneakPlay (Android)* → Artefakt
 `SneakPlay-debug-apk` → auf dem Handy installieren.
-**iOS:** siehe [VEROEFFENTLICHEN.md](VEROEFFENTLICHEN.md).
+**iOS:** siehe [TESTFLIGHT.md](TESTFLIGHT.md) (ausführlich) bzw. [VEROEFFENTLICHEN.md](VEROEFFENTLICHEN.md).
 
 ## Neue Version
 

@@ -5,7 +5,8 @@
     python3 tools/make-listing.py    # dann die gestalteten Store-Bilder
 
 Ergebnis: store-assets/listing/<format>-<sprache>-<nr>.png
-  phone69 = 1320 × 2868 (App Store Connect, 6,9″)
+  phone69 = 1320 × 2868 (App Store Connect, iPhone 6,9″)
+  ipad13  = 2064 × 2752 (App Store Connect, iPad 13″)
   play    = 1080 × 1920 (Play Console, Smartphone)
 Überschriften ohne Marken- oder Plattformnamen."""
 import os
@@ -102,13 +103,15 @@ def compose(src, title, sub):
 def main():
     os.makedirs(OUT, exist_ok=True)
     n = 0
-    for fmt in ("phone69", "play"):
+    for fmt in ("phone69", "ipad13", "play"):
         for lang in ("de", "en"):
             for i, key in enumerate(SHOTS, start=1):
                 src = os.path.join(SRC, f"{fmt}-{lang}-{key}.png")
                 if not os.path.exists(src):
                     continue
                 title, sub = CAPTIONS[lang][key]
+                if fmt == "ipad13":  # auf dem Tablet nicht vom Handy sprechen
+                    title = title.replace("Ein Handy.", "Ein Gerät.").replace("One phone.", "One device.")
                 compose(src, title, sub).save(os.path.join(OUT, f"{fmt}-{lang}-{i}.png"), optimize=True)
                 n += 1
     print(f"{n} Store-Bilder in {OUT}")

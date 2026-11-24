@@ -26,7 +26,8 @@
 
     <preference name="DisallowOverscroll" value="true" />
     <preference name="Fullscreen" value="false" />
-    <!-- Pass & Play: Das Handy wandert von Hand zu Hand – hochkant. -->
+    <!-- Pass & Play: Das Handy wandert von Hand zu Hand – hochkant.
+         (iPad: alle Ausrichtungen, siehe hooks/ios-orientation.js) -->
     <preference name="Orientation" value="portrait" />
     <preference name="BackgroundColor" value="0xff17122f" />
     <!-- QR-Scanner: Kamerabild im WebView statt Vollbild-Player -->
@@ -35,9 +36,10 @@
 
     <platform name="ios">
         <preference name="deployment-target" value="15.0" />
-        <!-- Nur Handy: Für iPad wären eigene Bildschirmfotos und alle
-             Ausrichtungen Pflicht. Auf Tablets läuft die Handy-Fassung trotzdem. -->
-        <preference name="target-device" value="handset" />
+        <!-- iPhone und iPad. Ausrichtungen setzt hooks/ios-orientation.js:
+             iPhone nur hochkant, iPad in allen vier (Pflicht für Split View). -->
+        <preference name="target-device" value="universal" />
+        <hook type="after_prepare" src="hooks/ios-orientation.js" />
         <preference name="AllowBackForwardNavigationGestures" value="false" />
         <preference name="StatusBarOverlaysWebView" value="true" />
         <preference name="StatusBarStyle" value="lightcontent" />

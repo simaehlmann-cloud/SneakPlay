@@ -86,7 +86,9 @@ for (const wf of [".github/workflows/android.yml", ".github/workflows/ios.yml"])
   ok(/mkdir -p platforms\n\s*cordova platform add/.test(y), `${wf}: vor „cordova platform add“ fehlt „mkdir -p platforms“`);
   ok(y.includes("node validate.js") && y.includes("node smoketest.js"), `${wf}: Prüfungen fehlen`);
 }
-ok(/name="target-device" value="handset"/.test(config), "config.xml: target-device=handset fehlt (sonst iPad-Pflichten)");
+ok(/name="target-device" value="universal"/.test(config), "config.xml: target-device=universal fehlt (iPhone und iPad)");
+ok(/<hook type="after_prepare" src="hooks\/ios-orientation\.js" \/>/.test(config) && fs.existsSync(path.join(__dirname, "hooks", "ios-orientation.js")), "config.xml: Hook für die iPad-Ausrichtungen fehlt");
+ok(/cp -r hooks build\/hooks/.test(fs.readFileSync(path.join(__dirname, ".github", "workflows", "ios.yml"), "utf8")), "ios.yml kopiert den hooks-Ordner nicht");
 ok(/name="Orientation" value="portrait"/.test(config), "config.xml: Hochformat fehlt");
 ok(/NSPhotoLibraryAddUsageDescription[\s\S]{0,200}<string>[^<]{30,}<\/string>/.test(config), "config.xml: Foto-Zweckangabe für das Teilen-Plugin fehlt");
 ok(/android\.permission\.VIBRATE/.test(config), "config.xml: VIBRATE fehlt");

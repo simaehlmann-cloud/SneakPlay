@@ -1,6 +1,7 @@
 # SneakPlay nach TestFlight bringen
 
-Stand: Version 1.0.0, iOS-Build 10000, Bundle-ID `de.sneakplay.app`.
+Stand: Version 1.0.0, iOS-Build 10000, Bundle-ID `de.sneakplay.app`,
+für iPhone (nur hochkant) und iPad (alle Ausrichtungen, auch Split View).
 Der Weg folgt MatheSnack. Vieles hast du dort schon, neu sind nur die Teile, die
 an der Kennung `de.sneakplay.app` hängen.
 
@@ -166,7 +167,8 @@ verbraucht keine Build-Nummer. Der Lauf dauert etwa 15–25 Minuten. Im Protokol
 siehst du:
 
 - **„Erzeugtes Projekt bestätigen“**: Bundle-ID `de.sneakplay.app`, Version
-  1.0.0 / Build 10000, Kamera- und Foto-Texte gesetzt, „nur Handy“, alle
+  1.0.0 / Build 10000, Kamera- und Foto-Texte gesetzt, „iPhone und iPad“,
+  „Ausrichtungen: iPhone 1, iPad 4“, alle
   Plugins installiert, StoreKit eingebunden, Privacy-Manifest vorhanden
 - **„Signierschlüssel einrichten“**: „Profil gilt für: 7LPBMXVK6D.de.sneakplay.app“
 - **„In App Store Connect hochladen“**: „Hochgeladen.“
@@ -174,13 +176,14 @@ siehst du:
 Nach 5–30 Minuten Verarbeitung erscheint der Build in App Store Connect unter
 **TestFlight**. Apple schickt zusätzlich eine E-Mail.
 
-## Schritt 7 – Auf dem iPhone installieren
+## Schritt 7 – Auf iPhone und iPad installieren
 
 1. App Store Connect → SneakPlay → **TestFlight → Interne Tests → +** → Gruppe
    `Ich` → dich selbst als Tester hinzufügen → Build 10000 der Gruppe zuweisen.
 2. Die Frage nach der Exportverschlüsselung erscheint nicht, das ist in der
    App bereits beantwortet.
-3. Auf dem iPhone die App **TestFlight** aus dem App Store laden → SneakPlay →
+3. Auf dem iPhone (und gern auch auf einem iPad) die App **TestFlight** aus
+   dem App Store laden → SneakPlay →
    **Installieren**.
 
 ## Schritt 8 – Testen
@@ -205,6 +208,9 @@ Was ich hier nicht simulieren kann, steht oben:
    öffnen → Frage „Runde fortsetzen?“
 9. **Schulmodus:** ⚙️ → einschalten mit PIN → keine Kaufknöpfe mehr sichtbar.
 10. **Schriftgröße** und **Farbschema** (Hell/Dunkel) in ⚙️ durchschalten.
+11. **iPad:** drehen (quer und hoch), Split View mit einer zweiten App, Teilen
+    (das Menü erscheint als Sprechblase) und den QR-Scanner. Am iPhone muss die
+    App beim Drehen hochkant bleiben.
 
 Schick mir bei Auffälligkeiten einen Screenshot.
 

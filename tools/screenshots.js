@@ -1,7 +1,8 @@
 /* SneakPlay – Store-Bildschirmfotos erzeugen (nicht Teil der App)
    Vorher im Repo-Ordner: python3 -m http.server 8765
    Dann:                  node tools/screenshots.js
-   Legt store-assets/screens/ an: phone69-* (1320 × 2868, iPhone 6,9″)
+   Legt store-assets/screens/ an: phone69-* (1320 × 2868, iPhone 6,9″),
+   ipad13-* (2064 × 2752, iPad 13″)
    und play-* (1080 × 1920) je Sprache, dunkles Design. */
 "use strict";
 const { chromium } = require("playwright");
@@ -10,7 +11,7 @@ const path = require("path");
 
 const ROOT = process.env.BASE || "http://localhost:8765";
 const OUT = path.join(__dirname, "..", "store-assets", "screens");
-const TARGETS = { phone69: { width: 440, height: 956 }, play: { width: 360, height: 640 } };
+const TARGETS = { phone69: { width: 440, height: 956 }, ipad13: { width: 1032, height: 1376, scale: 2 }, play: { width: 360, height: 640 } };
 const NAMES = { de: ["Anna", "Ben", "Cleo", "Dana", "Emil", "Finn"], en: ["Amy", "Ben", "Chloe", "Dan", "Ella", "Finn"] };
 
 (async () => {
@@ -18,7 +19,7 @@ const NAMES = { de: ["Anna", "Ben", "Cleo", "Dana", "Emil", "Finn"], en: ["Amy",
   const browser = await chromium.launch();
   for (const [target, vp] of Object.entries(TARGETS)) {
     for (const lang of ["de", "en"]) {
-      const ctx = await browser.newContext({ viewport: vp, deviceScaleFactor: 3, locale: lang });
+      const ctx = await browser.newContext({ viewport: { width: vp.width, height: vp.height }, deviceScaleFactor: vp.scale || 3, locale: lang });
       await ctx.addInitScript(() => { window.__SNEAKPLAY_TEST__ = true; });
       const page = await ctx.newPage();
       const shot = async n => { await page.waitForTimeout(500); await page.screenshot({ path: path.join(OUT, `${target}-${lang}-${n}.png`) }); };

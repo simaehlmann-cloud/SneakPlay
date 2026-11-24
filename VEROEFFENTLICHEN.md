@@ -53,7 +53,7 @@ Testliste: [`TESTFLIGHT.md`](TESTFLIGHT.md).** Kurzfassung:
    Sprache Englisch (UK und USA) hinzufügen.
 6. **Actions → Build SneakPlay (iOS) → Run workflow**. Im Schritt „Erzeugtes
    Projekt bestätigen“ stehen Kennung, Version, Build, Foto-Zweckangaben,
-   „nur Handy“, Plugins und Privacy-Manifest. Nach 5–30 Minuten erscheint
+   „iPhone und iPad“ mit den Ausrichtungen, Plugins und Privacy-Manifest. Nach 5–30 Minuten erscheint
    der Build in TestFlight.
 7. **APP_STORE_ID eintragen:** App Store Connect → App-Informationen →
    „Apple-ID“ (nur Ziffern) → in `www/js/app.js` bei `const APP_STORE_ID = ""`
@@ -139,7 +139,8 @@ Testliste: [`TESTFLIGHT.md`](TESTFLIGHT.md).** Kurzfassung:
 ## 5. Einreichen
 
 - **App Store Connect:** Version 1.0.0, Build wählen, Texte und Bilder aus
-  `STORE-TEXTE.md`/`store-assets/screens/phone69-*`, App-Datenschutz „Daten
+  `STORE-TEXTE.md`, Bilder aus `store-assets/listing/phone69-*` (iPhone) und
+  `store-assets/listing/ipad13-*` (iPad), App-Datenschutz „Daten
   werden nicht erfasst“, Altersfreigabe-Fragebogen (→ 4+), Prüfungsanmerkungen
   einfügen, „Zur Prüfung einreichen“.
 - **Play Console:** Produktion → neues Release mit demselben AAB →

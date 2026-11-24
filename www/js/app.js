@@ -152,9 +152,21 @@ function coach(key) { return R && (R.practice || coachOn(R.mode)) ? `<div class=
 
 /* ---------- Schriftgröße ---------- */
 const FONT_SCALES = [1, 1.12, 1.25];
+/* Tablets (kürzere Bildschirmseite ab 700 px): alles größer (1,2- bis 1,6-fach),
+   damit die Spalte den Bildschirm nutzt. In schmalem Split View bleibt die
+   normale Größe, in breitem wird nur so weit vergrößert, wie Platz ist. */
+function tabletFactor() {
+  // Gerätegröße statt Fensterhöhe: Eine eingeblendete Tastatur verkleinert auf
+  // Android-Tablets die Fensterhöhe – die Ansicht soll dabei nicht springen.
+  const sc = Math.min(screen.width || 0, screen.height || 0), w = window.innerWidth;
+  if (sc < 700 || w < 600) return 1;
+  const f = Math.min(1.6, Math.max(1.2, Math.round(sc / 64) / 10));
+  return Math.max(1, Math.min(f, w / 600));
+}
 function applyFontScale() {
   const f = Number(store.get("fontScale", 1));
-  document.body.style.zoom = FONT_SCALES.includes(f) && f !== 1 ? String(f) : "";
+  const z = (FONT_SCALES.includes(f) ? f : 1) * tabletFactor();
+  document.body.style.zoom = z !== 1 ? String(z) : "";
 }
 
 /* ---------- Dialog ---------- */
@@ -262,6 +274,12 @@ function deckName(id) {
 }
 function deckIcon(id) { return id.startsWith("u:") ? "✏️" : (DECK_ICON[id] || CAT_ICON[id] || "•"); }
 /* Hochstapler: Wortkategorien, Schule/Mathe (nach Niveau), eigene Karten */
+/* Gewählte Kategorien, die im aktuellen Bereich und in der aktuellen Sprache
+   sichtbar sind (z. B. keine Deutsch-Karten in der englischen Fassung) */
+function shownIds(ids) {
+  const L = lists();
+  return ids.filter(id => (isSchool() || !isSubject(id)) && (id.startsWith("u:") ? L.some(x => "u:" + x.id === id) : !!(EQUIV[LANG][id] || DECKS[LANG][id] || CONTENT[LANG].cats[id])));
+}
 function imposterPool(cats) {
   const o = cats || opts("imp", DEF_IMP).cats, L = lists(), pool = [], lv = level();
   o.filter(id => isSchool() || !isSubject(id)).forEach(id => {
@@ -310,7 +328,7 @@ function missionContent() {
 function whyNot(m) {
   if (usesTeams(m)) { if (teams().length < MIN_TEAMS) return t("why.teams"); }
   else if (players().length < MIN_PLAYERS[m]) return t("why.players", { n: MIN_PLAYERS[m] });
-  if (m === "imposter" && imposterPool().length < 2) return t(opts("imp", DEF_IMP).cats.length ? "why.level" : "why.cats");
+  if (m === "imposter" && imposterPool().length < 2) return t(shownIds(opts("imp", DEF_IMP).cats).length ? "why.level" : "why.cats");
   if (m === "explain" && explainPool().length < 5) return t("why.decks");
   if (m === "bomb" && bombPool().length < 1) return t("why.cats");
   return "";
@@ -640,6 +658,7 @@ function fitHold(hold, btn) {
     hold.classList.toggle("compact", nh < 250);
   } catch (e) { /* Standardhöhe bleibt */ }
 }
+window.addEventListener("resize", applyFontScale);
 window.addEventListener("resize", () => { if (current && current.name === "explain") fitExplain(); });
 window.addEventListener("resize", () => { const h = document.getElementById("hold"), b = document.getElementById("nextBtn"); if (h && b) fitHold(h, b); });
 

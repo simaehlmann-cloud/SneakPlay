@@ -177,6 +177,11 @@ jobs:
           for P in cordova-plugin-purchase cordova-plugin-statusbar cordova-plugin-x-socialsharing cordova-plugin-insomnia cordova-plugin-android-permissions; do
             cordova plugin ls | grep -q "^$P" && echo "Plugin $P installiert" || { echo "::error::Plugin $P fehlt."; FEHLER=1; }
           done
+          if grep -q 'StoreKit.framework' "$PBX"; then
+            echo "StoreKit:         eingebunden"
+          else
+            echo "::warning::StoreKit.framework nicht in der Projektdatei gefunden – im Build-Protokoll prüfen."
+          fi
 
           # cordova-ios 8 legt ein eigenes PrivacyInfo.xcprivacy mit leerem
           # NSPrivacyAccessedAPITypes an. Unseres nennt den Grund CA92.1 und
@@ -209,8 +214,8 @@ jobs:
       #                                – dasselbe wie bei MatheSnack/Drawmory ist erlaubt
       #   IOS_CERTIFICATE_PASSWORD     Passwort dieses .p12
       #   IOS_PROVISIONING_PROFILE     App-Store-Profil für de.sneakplay.app (base64) – NEU
-      #   IOS_TEAM_ID                  zehnstellige Team-ID
-      #   IOS_SIGNING_IDENTITY         z. B. "Apple Distribution: Simon Mählmann (TEAMID)"
+      #   IOS_TEAM_ID                  optional – sonst aus dem Profil
+      #   IOS_SIGNING_IDENTITY         optional – sonst "Apple Distribution"
       - name: Signierschlüssel einrichten
         id: signieren
         env:
@@ -263,6 +268,7 @@ jobs:
 
           rm -f "$ZERT" "$PROFIL"
           echo "profil_uuid=$UUID" >> "$GITHUB_OUTPUT"
+          echo "profil_team=$(/usr/libexec/PlistBuddy -c 'Print :TeamIdentifier:0' /dev/stdin <<< "$PROFIL_PLIST")" >> "$GITHUB_OUTPUT"
           echo "vorhanden=true" >> "$GITHUB_OUTPUT"
 
       - name: Signiert bauen (IPA für den Store)
@@ -272,8 +278,14 @@ jobs:
           TEAM_ID: ${{ secrets.IOS_TEAM_ID }}
           IDENTITAET: ${{ secrets.IOS_SIGNING_IDENTITY }}
           PROFIL_UUID: ${{ steps.signieren.outputs.profil_uuid }}
+          PROFIL_TEAM: ${{ steps.signieren.outputs.profil_team }}
         run: |
           set -e
+          # Team-ID und Identität sind optional: Fehlen sie, gelten die Team-ID
+          # aus dem Profil und die allgemeine Identität „Apple Distribution“.
+          TEAM_ID="${TEAM_ID:-$PROFIL_TEAM}"
+          IDENTITAET="${IDENTITAET:-Apple Distribution}"
+          echo "Team-ID: $TEAM_ID · Identität: $IDENTITAET"
           cat > build.json <<JSON
           {
             "ios": {

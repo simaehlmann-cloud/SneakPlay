@@ -26,8 +26,17 @@ const DEF_MIS = { timer: 5, vote: "group" };
 const DEF_EXP = { decks: ["ex_everyday", "ex_animals", "ex_food"], time: 60, rounds: 3, penalty: true };
 const DEF_BOMB = { len: "mid", src: "general", teams: false };
 /* Bereiche: „Freizeit“ und „Schule“ haben getrennte Auswahl und Vorgaben */
-const DEF_SCHOOL = { imp: { cats: ["m_numbers", "m_space", "m_measures"] }, exp: { decks: ["m_numbers", "m_measures", "ex_school"] }, bomb: { src: "mix" } };
-function isMath(id) { return DECK_MATH.includes(id) || EQUIV_DECKS.includes(id); }
+const DEF_SCHOOL = { imp: { cats: ["m_numbers", "m_space", "m_measures"] }, exp: { decks: ["m_numbers", "m_measures", "ex_school"] }, bomb: { srcs: ["math", "general"] } };
+/* Schulstapel: Mathe in beiden Sprachen, Deutsch und Englisch nur in der deutschen Fassung */
+function isSubject(id) { return DECK_MATH.includes(id) || EQUIV_DECKS.includes(id) || DECK_GERMAN.includes(id) || DECK_ENGLISH.includes(id); }
+function subjectDecks(list) { return list.filter(id => DECKS[LANG][id]); }
+const BOMB_SRCS = ["general", "math", "german", "english"];
+function bombSrcs() {
+  const o = opts("bomb", DEF_BOMB);
+  let a = Array.isArray(o.srcs) ? o.srcs : o.src === "mix" ? ["general", "math"] : [o.src || "general"];
+  a = a.filter(x => BOMB_SRCS.includes(x) && (LANG === "de" || x === "general" || x === "math"));
+  return a.length ? a : ["general"];
+}
 function world() { const w = store.get("world", null); return w === "school" || w === "free" ? w : null; }
 function isSchool() { return school() || world() === "school"; }
 function wkey(key) { return isSchool() && DEF_SCHOOL[key] ? key + ".s" : key; }
@@ -255,7 +264,7 @@ function deckIcon(id) { return id.startsWith("u:") ? "✏️" : (DECK_ICON[id] |
 /* Hochstapler: Wortkategorien, Schule/Mathe (nach Niveau), eigene Karten */
 function imposterPool(cats) {
   const o = cats || opts("imp", DEF_IMP).cats, L = lists(), pool = [], lv = level();
-  o.filter(id => isSchool() || !isMath(id)).forEach(id => {
+  o.filter(id => isSchool() || !isSubject(id)).forEach(id => {
     if (id.startsWith("u:")) {
       const l = L.find(x => "u:" + x.id === id);
       if (l) l.cards.forEach(c => pool.push({ cat: id, name: l.name, icon: "✏️", word: c.w, s: "" }));
@@ -275,7 +284,7 @@ function imposterPool(cats) {
 /* Erklär-Modus: Karten mit verbotenen Wörtern */
 function explainPool(decks) {
   const o = decks || opts("exp", DEF_EXP).decks, L = lists(), pool = [], lv = level();
-  o.filter(id => isSchool() || !isMath(id)).forEach(id => {
+  o.filter(id => isSchool() || !isSubject(id)).forEach(id => {
     if (id.startsWith("u:")) {
       const l = L.find(x => "u:" + x.id === id);
       if (l) l.cards.forEach(c => pool.push({ deck: id, icon: "✏️", w: c.w, f: c.f }));
@@ -286,9 +295,10 @@ function explainPool(decks) {
   return pool;
 }
 function bombPool() {
-  const src = isSchool() ? opts("bomb", DEF_BOMB).src : "general", lv = level();
-  const gen = bombPrompts(LANG), math = BOMB_MATH[LANG].filter(([, l]) => levelOk(l, lv)).map(([p]) => p);
-  return src === "math" ? math : src === "mix" ? gen.concat(math) : gen;
+  const src = isSchool() ? bombSrcs() : ["general"], lv = level();
+  const byLv = list => list.filter(([, l]) => levelOk(l, lv)).map(([p]) => p);
+  const part = { general: () => bombPrompts(LANG), math: () => byLv(BOMB_MATH[LANG]), german: () => byLv(BOMB_GERMAN), english: () => byLv(BOMB_ENGLISH) };
+  return src.flatMap(k => part[k]());
 }
 function missionContent() {
   return isSchool() ? { topics: SCHOOL_TOPICS[LANG], missions: SCHOOL_MISSIONS[LANG], key: "s" } : { topics: CONTENT[LANG].topics, missions: CONTENT[LANG].missions, key: "g" };
@@ -316,14 +326,17 @@ function customChips(sel, act, needForbidden) {
 }
 function catSections(sel, act, general, math) {
   const chips = ids => `<div class="chips">${ids.map(id => chip(id, sel.includes(id), act, deckName(id))).join("")}</div>`;
+  const de = subjectDecks(DECK_GERMAN), en = subjectDecks(DECK_ENGLISH);
   if (isSchool()) return `<section class="card"><h2>${esc(t("cats.title"))}</h2>
     <div class="grp">${esc(t("cats.math"))}</div>${chips(math)}
+    ${de.length ? `<div class="grp">${esc(t("cats.german"))}</div>${chips(de)}` : ""}
+    ${en.length ? `<div class="grp">${esc(t("cats.english"))}</div>${chips(en)}<p class="muted small" style="margin:6px 0 0">${esc(t("cats.english.hint"))}</p>` : ""}
     ${levelSeg()}
     <div class="grp">${esc(t("cats.more"))}</div>${chips(general)}
     <div class="grp">${esc(t("cats.own"))}</div><div class="chips">${customChips(sel, act)}</div>
   </section>`;
   return `<section class="card"><h2>${esc(t("cats.title"))}</h2>
-    <div class="grp">${esc(t("cats.general"))}</div>${chips(general.filter(id => !isMath(id)))}
+    <div class="grp">${esc(t("cats.general"))}</div>${chips(general.filter(id => !isSubject(id)))}
     <div class="grp">${esc(t("cats.own"))}</div><div class="chips">${customChips(sel, act)}</div>
   </section>`;
 }
@@ -368,9 +381,9 @@ function modeOptions(m, n) {
   }
   const o = opts("bomb", DEF_BOMB);
   return `<section class="card"><h2>${esc(t("opts.title"))}</h2>
-    ${isSchool() ? `<div class="opt col"><div class="lbl"><b>${esc(t("opt.bombSrc"))}</b></div>
-      ${seg(t("opt.bombSrc"), [["general", t("opt.bombSrc.general")], ["math", t("opt.bombSrc.math")], ["mix", t("opt.bombSrc.mix")]], o.src, "bombSrc")}</div>
-    ${o.src !== "general" ? levelSeg() : ""}` : ""}
+    ${isSchool() ? `<div class="opt col"><div class="lbl"><b>${esc(t("opt.bombSrc"))}</b><small>${esc(t("opt.bombSrc.hint"))}</small></div>
+      <div class="chips">${BOMB_SRCS.filter(k => LANG === "de" || k === "general" || k === "math").map(k => `<button type="button" class="chip" role="checkbox" aria-checked="${bombSrcs().includes(k)}" data-act="bombSrc" data-v="${k}">${esc(({ general: t("opt.bombSrc.general"), math: t("opt.bombSrc.math"), german: t("opt.bombSrc.german"), english: t("opt.bombSrc.english") })[k])}</button>`).join("")}</div></div>
+    ${bombSrcs().some(k => k !== "general") ? levelSeg() : ""}` : ""}
     <div class="opt"><div class="lbl"><b>${esc(t("opt.bombTeams"))}</b><small>${esc(t("opt.bombTeams.hint"))}</small></div>
       ${sw(t("opt.bombTeams"), o.teams, "bombTeams")}</div>
     <div class="opt col"><div class="lbl"><b>${esc(t("opt.fuse"))}</b><small>${esc(t("opt.fuse.hint"))}</small></div>
@@ -604,6 +617,18 @@ function screenPass() {
 /* Karte und Weiter-Knopf müssen ohne Scrollen sichtbar sein: Auf der Karte
    selbst ist Wischen gesperrt (sonst verrutscht sie beim Halten). Die Karte
    wird so weit verkleinert, dass der Knopf auf den Bildschirm passt. */
+/* Erklär-Karte: Knöpfe ohne Scrollen erreichbar halten (kleine Displays, große Schrift) */
+function fitExplain() {
+  try {
+    const card = document.querySelector(".excard"), btns = document.querySelectorAll(".exbtns button");
+    if (!card || !btns.length) return;
+    card.classList.remove("tight"); card.style.zoom = "";
+    const over = () => Math.max(...[...btns].map(b => b.getBoundingClientRect().bottom)) + window.scrollY + 10 - window.innerHeight;
+    if (over() <= 0) return;
+    card.classList.add("tight");
+    for (let z = 0.94; z >= 0.7 && over() > 0; z -= 0.04) card.style.zoom = z.toFixed(2);
+  } catch (e) {}
+}
 function fitHold(hold, btn) {
   try {
     hold.style.height = ""; hold.classList.remove("compact");
@@ -615,6 +640,7 @@ function fitHold(hold, btn) {
     hold.classList.toggle("compact", nh < 250);
   } catch (e) { /* Standardhöhe bleibt */ }
 }
+window.addEventListener("resize", () => { if (current && current.name === "explain") fitExplain(); });
 window.addEventListener("resize", () => { const h = document.getElementById("hold"), b = document.getElementById("nextBtn"); if (h && b) fitHold(h, b); });
 
 /* =====================================================================
@@ -855,7 +881,7 @@ function screenExplain(keep) {
       ${st === "paused" ? `<div class="card center"><div class="e-big">⏸</div><p>${esc(t("ex.paused"))}</p>
           <button type="button" class="btn primary wide" data-act="exResume">▶ ${esc(t("timer.resume"))}</button>
           <button type="button" class="btn danger wide" style="margin-top:8px" data-act="abort">✕ ${esc(t("round.end"))}</button></div>`
-        : `<div class="excard pop"><div class="k">${c.icon} ${esc(t("ex.explain"))}</div><div class="w">${esc(c.w)}</div>
+        : `<div class="excard pop"><div class="k">${c.icon} ${esc(DECK_ENGLISH.includes(c.deck) ? t("ex.explainEn") : t("ex.explain"))}</div><div class="w">${esc(c.w)}</div>
           ${c.f.length ? `<div class="k" style="margin-top:6px">${esc(t("ex.forbidden"))}</div><ul class="forbid">${c.f.map(x => `<li>${esc(x)}</li>`).join("")}</ul>` : `<p class="muted small">${esc(t("ex.noForbidden"))}</p>`}</div>
         <div class="exbtns">
           <button type="button" class="btn exok" data-act="exRes" data-v="ok">✓ ${esc(t("ex.ok"))}</button>
@@ -864,6 +890,7 @@ function screenExplain(keep) {
         </div>`}`,
     { name: "explain", redraw: screenExplain, round: true, keepTimers: true, keepScroll: keep });
     if (TIMER) TIMER.onTick(TIMER.remaining());
+    fitExplain();
     return;
   }
   if (st === "review") {
@@ -1458,7 +1485,12 @@ const ACT = {
     if (school() || (v !== "free" && v !== "school")) { if (school() && v === "free") toast(t("school.locked")); return; }
     store.set("world", v); screenHome(true);
   },
-  bombSrc: v => { setOpt("bomb", DEF_BOMB, { src: v }); screenHome(true); },
+  bombSrc: v => {
+    if (!BOMB_SRCS.includes(v)) return;
+    const cur = bombSrcs(), next = cur.includes(v) ? cur.filter(x => x !== v) : cur.concat(v);
+    if (!next.length) { toast(t("opt.bombSrc.one")); return; }
+    setOpt("bomb", DEF_BOMB, { srcs: next, src: undefined }); screenHome(true);
+  },
   bombTeams: () => { setOpt("bomb", DEF_BOMB, { teams: !opts("bomb", DEF_BOMB).teams }); screenHome(true); },
   start: () => startRound(),
   resetScores: () => confirmDlg(t("score.reset.confirm"), t("score.reset"), () => { store.set("scores", {}); store.set("teamScores", {}); toast(t("score.reset.done")); redraw(); }),

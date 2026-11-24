@@ -10,10 +10,62 @@
 
 const DECK_GENERAL = ["ex_everyday", "ex_animals", "ex_food", "ex_leisure", "ex_school"];
 const DECK_MATH = ["m_numbers", "m_measures", "m_space", "m_functions", "m_data"];
-const DECK_ICON = { ex_everyday: "🏠", ex_animals: "🦒", ex_food: "🍕", ex_leisure: "🎳", ex_school: "🏫", m_numbers: "🔢", m_measures: "📏", m_space: "📐", m_functions: "📈", m_data: "🎲" };
+/* Fächer Deutsch und Englisch (nur in der deutschen Fassung; Englisch-Karten
+   sind auf Englisch und werden auf Englisch erklärt) */
+const DECK_GERMAN = ["d_language", "d_texts"];
+const DECK_ENGLISH = ["e_everyday", "e_countries", "e_grammar"];
+const DECK_ICON = { d_language: "✏️", d_texts: "📚", e_everyday: "💬", e_countries: "🌍", e_grammar: "📘", ex_everyday: "🏠", ex_animals: "🦒", ex_food: "🍕", ex_leisure: "🎳", ex_school: "🏫", m_numbers: "🔢", m_measures: "📏", m_space: "📐", m_functions: "📈", m_data: "🎲" };
 
 const DECKS_RAW = {
   de: {
+    d_language: ["Sprache & Grammatik", [
+      "Nomen|Hauptwort,Namenwort,großschreiben,Artikel|1|Verb", "Verb|Tunwort,Tätigkeit,Zeitwort,beugen|1|Nomen", "Adjektiv|Eigenschaftswort,beschreiben,wie,steigern|1|Adverb",
+      "Artikel|der,die,das,Begleiter|1|Pronomen", "Plural|Mehrzahl,viele,Einzahl,mehrere|1|Singular", "Silbe|klatschen,Wortteil,trennen,Silbenbogen|1|Buchstabe",
+      "Vokal|Selbstlaut,a,e,i|1|Konsonant", "Wörterbuch|nachschlagen,Alphabet,Rechtschreibung,Duden|1|Lexikon", "Satzzeichen|Punkt,Komma,Fragezeichen,Ausrufezeichen|1|Anführungszeichen",
+      "Steigerung|Komparativ,Superlativ,am,besser|1|Vergleich", "Reim|klingen,gleich,Gedicht,Ende|1|Silbe", "Ausrufezeichen|Satzzeichen,rufen,Befehl,Punkt|1|Fragezeichen",
+      "Pronomen|Fürwort,ich,er,ersetzen|2|Artikel", "Präposition|Verhältniswort,auf,unter,mit|2|Konjunktion", "Subjekt|Satzglied,wer,Satzgegenstand,handelt|2|Objekt",
+      "Prädikat|Satzaussage,Verb,Satzglied,tun|2|Subjekt", "Akkusativ|Fall,wen,vierter,Objekt|2|Dativ", "Dativ|Fall,wem,dritter,Objekt|2|Akkusativ",
+      "Präteritum|Vergangenheit,Zeitform,ging,erzählen|2|Perfekt", "Perfekt|Vergangenheit,haben,sein,Zeitform|2|Präteritum", "Konjunktion|Bindewort,und,weil,verbinden|2|Präposition",
+      "Nebensatz|Hauptsatz,Komma,weil,Verb|2|Hauptsatz", "Wortfamilie|Wortstamm,verwandt,gleich,Wörter|2|Wortfeld", "Imperativ|Befehlsform,Aufforderung,Ausrufezeichen,komm|2|Infinitiv",
+      "Konjunktiv|Möglichkeit,wäre,hätte,indirekt|3|Imperativ", "Passiv|Aktiv,werden,Leideform,Handlung|3|Aktiv", "Relativsatz|der,welcher,Nebensatz,beziehen|3|Nebensatz",
+      "Genitiv|Fall,wessen,zweiter,Besitz|3|Dativ", "Plusquamperfekt|Vorvergangenheit,hatte,Zeitform,vorher|3|Perfekt", "Fremdwort|Sprache,fremd,Herkunft,Englisch|3|Fachbegriff"]],
+    d_texts: ["Texte & Literatur", [
+      "Märchen|Es war einmal,Prinzessin,Hexe,Grimm|1|Fabel", "Fabel|Tiere,Lehre,sprechen,Moral|1|Märchen", "Gedicht|Reim,Strophe,Vers,Lyrik|1|Lied",
+      "Strophe|Gedicht,Absatz,Verse,Lied|1|Vers", "Überschrift|Titel,oben,Text,fett|1|Schlagzeile", "Steckbrief|Person,Merkmale,Name,Alter|1|Beschreibung",
+      "Comic|Sprechblase,Bilder,Heft,Zeichnung|1|Bilderbuch", "Hauptfigur|Held,Geschichte,wichtig,Person|1|Nebenfigur", "Bibliothek|Bücher,ausleihen,Bücherei,lesen|1|Buchhandlung",
+      "Kapitel|Buch,Abschnitt,Teil,Nummer|1|Absatz", "Autor|schreiben,Buch,Schriftsteller,Werk|1|Erzähler", "Erzähler|erzählen,Geschichte,Ich,Perspektive|2|Autor",
+      "Ballade|Gedicht,Geschichte,Strophen,Goethe|2|Gedicht", "Sage|Held,Legende,alt,Ort|2|Märchen", "Bericht|Ereignis,sachlich,W-Fragen,Präteritum|2|Erzählung",
+      "Inhaltsangabe|Zusammenfassung,Präsens,kurz,Text|2|Bericht", "Vergleich|wie,als,Bild,Stilmittel|2|Metapher", "Personifikation|menschlich,Dinge,Stilmittel,lebendig|2|Vergleich",
+      "Kurzgeschichte|kurz,offen,Ende,Alltag|2|Fabel", "Dialog|Gespräch,zwei,Personen,sprechen|2|Monolog", "Höhepunkt|Spannung,Handlung,spannendste,Kurve|2|Wendepunkt",
+      "Roman|Buch,lang,Kapitel,Geschichte|2|Novelle", "Metapher|Bild,übertragen,Stilmittel,Vergleich|3|Personifikation", "Erörterung|Argumente,pro,kontra,Meinung|3|Kommentar",
+      "Drama|Theater,Akt,Szene,Bühne|3|Roman", "Monolog|allein,sprechen,Bühne,Selbstgespräch|3|Dialog", "Ironie|Gegenteil,meinen,spöttisch,Spott|3|Sarkasmus",
+      "Rhetorische Frage|Frage,Antwort,Stilmittel,keine|3|Ausruf", "Interpretation|deuten,Text,Bedeutung,Analyse|3|Inhaltsangabe", "Alliteration|Anfang,Laut,gleich,Stilmittel|3|Reim"]],
+    e_everyday: ["Englisch: Alltag", [
+      "kitchen|cook,food,fridge,room|1|bathroom", "breakfast|morning,eat,cereal,meal|1|lunch", "weekend|Saturday,Sunday,week,free|1|holiday",
+      "umbrella|rain,wet,open,weather|1|raincoat", "birthday|cake,candles,present,party|1|wedding", "supermarket|shop,buy,food,trolley|1|bakery",
+      "teacher|school,class,lesson,students|1|headteacher", "homework|school,home,exercise,teacher|1|test", "pencil case|pens,pencils,bag,school|1|schoolbag",
+      "bus stop|bus,wait,street,station|1|train station", "grandmother|grandma,mother,old,family|1|aunt", "library|books,borrow,read,quiet|1|bookshop",
+      "zoo|animals,lions,visit,cage|1|farm", "neighbour|next,door,house,lives|2|friend", "ticket|train,cinema,buy,paper|2|passport",
+      "hospital|doctor,ill,nurse,sick|2|chemist", "pocket money|parents,money,week,spend|2|salary", "traffic jam|cars,road,stuck,slow|2|rush hour",
+      "environment|nature,protect,planet,climate|3|pollution", "volunteer|help,free,unpaid,work|3|charity", "advertisement|product,TV,sell,buy|3|poster",
+      "career|job,work,future,profession|3|apprenticeship", "pollution|dirty,air,environment,plastic|3|litter", "interview|questions,job,answer,talk|3|survey"]],
+    e_countries: ["Englisch: Länder & Kultur", [
+      "London|capital,England,Thames,city|1|Edinburgh", "Big Ben|clock,London,tower,bell|1|Tower Bridge", "double-decker|bus,red,London,upstairs|1|taxi",
+      "Halloween|October,pumpkin,costume,trick or treat|1|Bonfire Night", "fish and chips|fish,chips,fried,British|1|sandwich", "Scotland|kilt,bagpipes,Edinburgh,country|1|Wales",
+      "afternoon tea|tea,afternoon,scones,cup|1|breakfast", "school uniform|clothes,tie,same,wear|1|tracksuit", "Thanksgiving|turkey,November,thanks,American|2|Halloween",
+      "Statue of Liberty|New York,statue,torch,freedom|2|Big Ben", "Union Jack|flag,British,red,blue|2|Stars and Stripes", "Australia|kangaroo,continent,Sydney,country|2|New Zealand",
+      "the Tube|London,train,underground,metro|2|double-decker", "Ireland|green,island,Dublin,clover|2|Scotland", "pound|money,British,pence,currency|2|dollar",
+      "Canada|maple,country,cold,Toronto|2|Alaska", "Bonfire Night|fireworks,November,Guy Fawkes,fire|3|Halloween", "Parliament|government,laws,Westminster,MPs|3|Congress",
+      "Hollywood|films,Los Angeles,stars,cinema|3|Broadway", "Independence Day|4th of July,fireworks,American,holiday|3|Thanksgiving", "Shakespeare|plays,Romeo,writer,Hamlet|3|Dickens",
+      "Commonwealth|countries,British,former,empire|3|United Nations"]],
+    e_grammar: ["Englisch: Grammatik", [
+      "plural|more,one,s,many|1|singular", "question word|who,what,where,ask|1|question tag", "verb|action,do,word,doing|1|noun",
+      "noun|thing,person,word,name|1|verb", "adjective|describe,word,big,noun|1|adverb", "opposite|different,contrary,big,small|1|synonym",
+      "simple past|yesterday,ed,past,finished|2|present perfect", "present perfect|have,has,already,since|2|simple past", "irregular verb|went,go,rule,ed|2|regular verb",
+      "going-to future|plan,going,future,will|2|will-future", "comparative|er,more,than,compare|2|superlative", "superlative|est,most,best,the|2|comparative",
+      "adverb|ly,how,describe,verb|2|adjective", "pronoun|he,she,it,instead|2|noun", "question tag|isn't it,end,question,sentence|2|question word",
+      "passive|by,done,form,active|3|active", "if-clause|condition,if,would,type|3|relative clause", "relative clause|who,which,that,sentence|3|if-clause",
+      "reported speech|said,told,indirect,someone|3|direct speech", "gerund|ing,noun,verb,doing|3|infinitive", "synonym|same,meaning,word,similar|3|opposite"]],
     ex_everyday: ["Alltag", [
       "Zahnbürste|Zähne,putzen,Zahnpasta,Bad|1", "Wecker|aufstehen,klingeln,Uhr,Morgen|1", "Regenschirm|Regen,nass,aufspannen,Wetter|1",
       "Kühlschrank|kalt,Küche,Essen,Tür|1", "Fahrrad|Räder,treten,Lenker,fahren|1", "Handy|telefonieren,App,Bildschirm,Smartphone|1",
@@ -197,7 +249,9 @@ const SCHOOL_MISSIONS = {
     "Bringe jemanden dazu, „genau“ zu sagen.", "Benutze das Wort „Wahrscheinlichkeit“.", "Stelle zwei Fragen direkt hintereinander.",
     "Schätze im Gespräch eine Zahl („ungefähr …“).", "Wiederhole das letzte Wort deines Vorredners.", "Erwähne eine geometrische Form.",
     "Benutze zweimal das Wort „Prozent“.", "Lenke das Gespräch kurz auf das Wetter.", "Sage einmal „Das kann man beweisen!“.",
-    "Frage jemanden nach seinem Lieblingsfach.", "Nenne eine Einheit, zum Beispiel Meter oder Liter.", "Lobe ausdrücklich die Idee einer anderen Person."],
+    "Frage jemanden nach seinem Lieblingsfach.", "Nenne eine Einheit, zum Beispiel Meter oder Liter.", "Lobe ausdrücklich die Idee einer anderen Person.",
+    "Sage einen ganzen Satz auf Englisch.", "Benutze eine Metapher.", "Baue ein Sprichwort ein.", "Stelle eine rhetorische Frage.",
+    "Benutze ein englisches Wort, als wäre es Deutsch.", "Beginne zwei Wörter hintereinander mit demselben Buchstaben – und das dreimal."],
   en: ["Say the word “proportional” three times.", "Mention a prime number above 20.", "Work the word “hypotenuse” into the conversation.",
     "Agree with everything the person on your left says.", "Answer the next question with another question.", "Mention a decimal number.",
     "Say the word “actually” twice.", "Count something off on your fingers while talking.", "Get someone to say a number.",
@@ -205,8 +259,22 @@ const SCHOOL_MISSIONS = {
     "Get someone to say “exactly”.", "Use the word “probability”.", "Ask two questions straight after each other.",
     "Estimate a number in the conversation (“roughly …”).", "Repeat the last word of the previous speaker.", "Mention a geometric shape.",
     "Say the word “percent” twice.", "Briefly steer the conversation to the weather.", "Say “That can be proved!” once.",
-    "Ask someone about their favourite subject.", "Mention a unit, for example metres or litres.", "Explicitly praise another person's idea."]
+    "Ask someone about their favourite subject.", "Mention a unit, for example metres or litres.", "Explicitly praise another person's idea.",
+    "Say a whole sentence in another language.", "Use a metaphor.", "Work a proverb into the conversation.", "Ask a rhetorical question.",
+    "Use a word from another language as if it were English.", "Start two words in a row with the same letter – three times."]
 };
+/* Wort-Bombe: Aufgaben für Deutsch und Englisch (nur deutsche Fassung) */
+const BOMB_GERMAN = [["Ein Nomen mit -ung", 1], ["Ein Verb der Bewegung", 1], ["Ein Adjektiv für Gefühle", 1], ["Ein Wort mit ie", 1], ["Ein Wort mit ß", 1],
+  ["Ein Wort mit Doppel-L", 1], ["Ein Reimwort auf -aus", 1], ["Ein Wort mit drei Silben", 1], ["Ein Nomen, das mit Schul- beginnt", 1], ["Ein Märchen", 1],
+  ["Eine Märchenfigur", 1], ["Ein Wort, das mit Sp beginnt", 1], ["Ein Verb mit ver-", 1], ["Ein Tier mit Artikel „die“", 1], ["Ein Wort mit ck", 1],
+  ["Eine Präposition", 2], ["Ein Verb im Präteritum", 2], ["Ein Wort mit -heit oder -keit", 2], ["Eine Konjunktion", 2], ["Ein Fremdwort", 2],
+  ["Ein Wort aus dem Wortfeld „sagen“", 2], ["Ein Pronomen", 2], ["Ein Stilmittel", 3], ["Eine Textsorte", 3], ["Ein Satzglied", 3], ["Ein Verb mit unregelmäßigem Präteritum", 3]];
+const BOMB_ENGLISH = [["An animal (in English)", 1], ["Something in a classroom (in English)", 1], ["A colour (in English)", 1], ["Food (in English)", 1], ["A family member (in English)", 1],
+  ["A day or a month (in English)", 1], ["A piece of clothing (in English)", 1], ["A job (in English)", 1], ["An English word with th", 1], ["A room in a house (in English)", 1],
+  ["A hobby (in English)", 1], ["A means of transport (in English)", 1], ["A number word above twenty (in English)", 1], ["An irregular verb", 2], ["A verb in the simple past", 2],
+  ["A country where people speak English", 2], ["An English word ending in -ly", 2], ["An adjective with -er and -est", 2], ["A weather word (in English)", 2], ["A British or American city", 2],
+  ["A phrasal verb", 3], ["An English word ending in -tion", 3], ["A synonym for “big”", 3], ["A word about the environment (in English)", 3]];
+
 /* Wort-Bombe: Mathe-Aufgaben mit Niveau */
 const BOMB_MATH = {
   de: [["Eine Primzahl", 1], ["Eine Quadratzahl", 1], ["Eine gerade Zahl über 100", 1], ["Ein Vielfaches von 7", 1], ["Ein Teiler von 60", 1],

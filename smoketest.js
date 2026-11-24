@@ -264,6 +264,15 @@ const ok = (c, m) => { if (c) console.log("✓ " + m); else { fehler++; console.
     store.set("mode", "bomb"); goHome(); r.noSrc = !document.querySelector('[data-act="bombSrc"]');
     store.set("world", "school"); r.misS = missionContent().key; goHome(); r.src = !!document.querySelector('[data-act="bombSrc"]');
     store.set("mode", "imposter"); goHome(); return JSON.stringify(r); }) === JSON.stringify({ mis: "g", bomb: true, exp: true, noMath: true, noSrc: true, misS: "s", src: true }), "Freizeit ohne Mathe, Schule mit Mathe-Aufgaben und Schulthemen");
+  const snapLS = await page.evaluate(() => JSON.stringify(Object.assign({}, localStorage)));
+  ok(await page.evaluate(() => { goHome(); const ok1 = ["d_language", "d_texts", "e_everyday", "e_countries", "e_grammar"].every(id => document.querySelector(`[data-act="cat"][data-v="${id}"]`));
+    store.set("world", "free"); goHome(); const ok2 = !document.querySelector('[data-act="cat"][data-v="d_texts"]') && !imposterPool(["d_texts", "food"]).some(x => x.cat === "d_texts");
+    store.set("world", "school"); store.set("level", 3); const ok3 = imposterPool(["e_grammar"]).length >= 16 && explainPool(["d_language"]).length >= 20;
+    store.set("mode", "bomb"); setOpt("bomb", DEF_BOMB, { srcs: ["german", "english"] }); const bp = bombPool(); const ok4 = bp.includes("Ein Märchen") && bp.includes("A phrasal verb") && !bp.some(p => BOMB_MATH.de.some(([q]) => q === p));
+    store.set("lang", "en"); setLang("en"); goHome(); const ok5 = !document.querySelector('[data-act="bombSrc"][data-v="german"]') && bombPool().length > 0 && !document.querySelector('[data-act="cat"][data-v="d_texts"]');
+    setLang("de"); store.set("mode", "imposter"); goHome(); return ok1 && ok2 && ok3 && ok4 && ok5; }), "Fächer Deutsch und Englisch nur im Bereich Schule und nur auf Deutsch");
+  ok(await page.evaluate(() => { store.set("mode", "explain"); setOpt("exp", DEF_EXP, { decks: ["e_everyday"] }); goHome(); beginRound("explain"); exStart(); const r = /Englisch/.test(document.querySelector(".excard .k").textContent); TIMER.stop && TIMER.stop(); R = null; store.set("mode", "imposter"); goHome(); return r; }), "Englisch-Karten: „Erkläre auf Englisch“");
+  await page.evaluate(snap => { localStorage.clear(); for (const [k, v] of Object.entries(JSON.parse(snap))) localStorage.setItem(k, v); setLang(JSON.parse(localStorage.getItem("sneakplay.lang") || '"de"')); goHome(); }, snapLS);
   ok(await page.evaluate(() => { store.set("school", true); store.set("world", "free"); goHome(); const r = isSchool() && document.querySelector('.worldsw [data-v="free"]').disabled; store.set("school", false); store.set("world", "school"); goHome(); return r; }), "Schulmodus (PIN) sperrt auf Schule");
   while (await page.$('[data-act="cat"][aria-checked="true"]')) await page.click('[data-act="cat"][aria-checked="true"]');
   await act("cat", "m_space");
@@ -329,7 +338,11 @@ const ok = (c, m) => { if (c) console.log("✓ " + m); else { fehler++; console.
 
   /* ---------- Wort-Bombe: Mathe-Aufgaben in Teams ---------- */
   await act("mode", "bomb");
+  ok(await page.evaluate(() => JSON.stringify(bombSrcs()) === '["math","general"]'), "Bombe Schule: Mathe und Allgemein vorgewählt");
+  await act("bombSrc", "general");
+  ok(await page.evaluate(() => JSON.stringify(bombSrcs()) === '["math"]'), "Aufgabenart abwählbar");
   await act("bombSrc", "math");
+  ok(await page.evaluate(() => JSON.stringify(bombSrcs()) === '["math"]'), "Mindestens eine Aufgabenart bleibt");
   await act("bombTeams");
   await act("fuse", "short");
   await page.evaluate(() => { BOMB_LEN.short = [1, 1]; });

@@ -146,7 +146,7 @@ const sandbox = {
 sandbox.window = sandbox;
 vm.createContext(sandbox);
 for (const f of ["core", "i18n", "content", "decks", "game", "qr", "shop"]) vm.runInContext(R(`www/js/${f}.js`) + "\n;globalThis.__x = 1;", sandbox, { filename: f + ".js" });
-const G = vm.runInContext("({ EQUIV, EQUIV_DECKS, PRODUCT_ID, TRIALS, FREE_MODES, trialsLeft, useTrial, unlocked, isPro, DECKS, DECK_GENERAL, DECK_MATH, DECK_ICON, SCHOOL_TOPICS, SCHOOL_MISSIONS, BOMB_MATH, MAX_PLAYERS, similarFor, explainPoints, parseCards, cardsToText, encodeSet, decodeSet, qrParts, parseQrPart, partCollector, QR, utf8Len, levelOk, I18N, CONTENT, CAT_ORDER, CAT_ICON, MODES, MIN_PLAYERS, assignImposter, pickFresh, pickManyFresh, tally, scoreImposter, scoreMissions, scoreBomb, bombPrompts, tickInterval, bombDuration, uniqueName, parseWords, cleanText, esc, BOMB_LEN })", sandbox);
+const G = vm.runInContext("({ EQUIV, EQUIV_DECKS, PRODUCT_ID, TRIALS, FREE_MODES, trialsLeft, useTrial, unlocked, isPro, DECKS, DECK_GENERAL, DECK_MATH, DECK_GERMAN, DECK_ENGLISH, BOMB_GERMAN, BOMB_ENGLISH, DECK_ICON, SCHOOL_TOPICS, SCHOOL_MISSIONS, BOMB_MATH, MAX_PLAYERS, similarFor, explainPoints, parseCards, cardsToText, encodeSet, decodeSet, qrParts, parseQrPart, partCollector, QR, utf8Len, levelOk, I18N, CONTENT, CAT_ORDER, CAT_ICON, MODES, MIN_PLAYERS, assignImposter, pickFresh, pickManyFresh, tally, scoreImposter, scoreMissions, scoreBomb, bombPrompts, tickInterval, bombDuration, uniqueName, parseWords, cleanText, esc, BOMB_LEN })", sandbox);
 
 /* ---------- Übersetzungen ---------- */
 const LANGS = Object.keys(G.I18N);
@@ -290,14 +290,16 @@ info("Spiellogik: Rollen, Zufall, Wiederholungen, Abstimmung und Wertung geprüf
 /* ---------- Kartendecks, Schule, Mathe ---------- */
 for (const l of LANGS) {
   const D = G.DECKS[l];
-  ok(JSON.stringify(Object.keys(D).sort()) === JSON.stringify(G.DECK_GENERAL.concat(G.DECK_MATH).sort()), `${l}: Decks weichen von DECK_GENERAL/DECK_MATH ab`);
+  const soll = G.DECK_GENERAL.concat(G.DECK_MATH, l === "de" ? G.DECK_GERMAN.concat(G.DECK_ENGLISH) : []);
+  ok(JSON.stringify(Object.keys(D).sort()) === JSON.stringify(soll.sort()), `${l}: Decks weichen von DECK_GENERAL/DECK_MATH/Fächern ab`);
   let total = 0;
   for (const id of Object.keys(D)) {
     const d = D[id];
     ok(d.name && G.DECK_ICON[id], `${l}/${id}: Name oder Symbol fehlt`);
     ok(d.cards.length >= 16, `${l}/${id}: nur ${d.cards.length} Karten`);
     ok(new Set(d.cards.map(c => c.w.toLowerCase())).size === d.cards.length, `${l}/${id}: doppelte Begriffe`);
-    if (G.DECK_MATH.includes(id)) ok(d.cards.filter(c => c.lv === 1).length >= 6, `${l}/${id}: zu wenige Karten für Klasse 5–6`);
+    const fach = G.DECK_MATH.includes(id) || G.DECK_GERMAN.includes(id) || G.DECK_ENGLISH.includes(id);
+    if (fach) ok(d.cards.filter(c => c.lv === 1).length >= 6 && [2, 3].every(v => d.cards.some(c => c.lv === v)), `${l}/${id}: Niveaus ungleich verteilt`);
     for (const c of d.cards) {
       const w = c.w.toLowerCase();
       ok(c.f.length === 4 && new Set(c.f.map(x => x.toLowerCase())).size === 4, `${l}/${id}/${c.w}: genau 4 verschiedene verbotene Wörter (${c.f.join(", ")})`);
@@ -305,7 +307,7 @@ for (const l of LANGS) {
       ok(c.f.every(x => x && x.trim() === x && x.toLowerCase() !== w), `${l}/${id}/${c.w}: Begriff selbst steht in den verbotenen Wörtern`);
       ok([1, 2, 3].includes(c.lv), `${l}/${id}/${c.w}: Niveau ${c.lv}`);
       ok(!c.s || c.s.toLowerCase() !== w, `${l}/${id}/${c.w}: ähnlicher Begriff gleich dem Begriff`);
-      if (id === "ex_school" || G.DECK_MATH.includes(id)) ok(!!c.s, `${l}/${id}/${c.w}: ähnlicher Begriff fehlt`);
+      if (id === "ex_school" || fach) ok(!!c.s, `${l}/${id}/${c.w}: ähnlicher Begriff fehlt`);
       const all = [c.w, ...c.f, c.s].join(" ");
       const m = all.match(BLOCK) || all.match(FREMD) || all.match(MARKEN);
       ok(!m, `${l}/${id}/${c.w}: unzulässiger Inhalt „${m && m[0]}“`);
@@ -316,6 +318,10 @@ for (const l of LANGS) {
   ok(G.SCHOOL_TOPICS[l].length >= 15 && new Set(G.SCHOOL_TOPICS[l]).size === G.SCHOOL_TOPICS[l].length, `${l}: Schul-Themen`);
   ok(G.SCHOOL_MISSIONS[l].length >= G.MAX_PLAYERS && new Set(G.SCHOOL_MISSIONS[l]).size === G.SCHOOL_MISSIONS[l].length, `${l}: Schul-Missionen reichen nicht für ${G.MAX_PLAYERS} Spieler`);
   ok(G.CONTENT[l].missions.length >= G.MAX_PLAYERS, `${l}: Missionen reichen nicht für ${G.MAX_PLAYERS} Spieler`);
+  if (l === "de") for (const [n, B] of [["Deutsch", G.BOMB_GERMAN], ["Englisch", G.BOMB_ENGLISH]]) {
+    ok(B.length >= 20 && B.filter(([, v]) => v === 1).length >= 10 && new Set(B.map(x => x[0])).size === B.length && B.every(([p, v]) => p && [1, 2, 3].includes(v)), `Bomben-Aufgaben ${n}`);
+    B.forEach(([x]) => { const m = x.match(BLOCK) || x.match(FREMD) || x.match(MARKEN); ok(!m, `Bombe ${n}: unzulässiger Inhalt „${x}“`); });
+  }
   ok(G.BOMB_MATH[l].length >= 30 && G.BOMB_MATH[l].filter(([, v]) => v === 1).length >= 15, `${l}: Mathe-Bomben-Aufgaben`);
   [...G.SCHOOL_TOPICS[l], ...G.SCHOOL_MISSIONS[l], ...G.BOMB_MATH[l].map(x => x[0])].forEach(x => { const m = x.match(BLOCK) || x.match(FREMD) || x.match(MARKEN); ok(!m, `${l}: unzulässiger Inhalt „${x}“`); });
 }
@@ -403,7 +409,7 @@ info("Eigene Karten, Text- und QR-Austausch, ähnlicher Begriff, Erklär-Wertung
 {
   /* Grobe Prüfung: ${…} in HTML-Vorlagen muss esc(), names(), eine Zahl,
      ein Symbol oder ein bekannter Baustein sein. */
-  const SAFE = /^(esc\(|coach\(|canAct|modeBadge|L\.map|target\b|isPro\(\)|pro \?|paid\.map|platformId\(\)|sch \?|x\.res|sample\b|set\.cards\.length|mathOn|school\(\)|isSchool\(\)|world\(\)|worldSwitch|chips\(|ids\.map|w === |lock\b|T\.|teamMode|extraHtml|max\b|TEAM_COLORS|on\b|deckIcon|general\.map|withSchoolMath|customChips|chip\(|dot\(|levelSeg|playersCard|teamsCard|exScoreboard|awardRows|scoreTable|c\.icon|c\.f|pts|tm\b|sch\b|!!on|disabled|withAbort|MODES\.|fmtTime|b\.|l\b|String\(|act\b|disabledFn|options\.|buttons\.|\[\[|names\(|t\("|i \+ 1|n\b|k \* 90|MODE_ICON|CAT_ICON|R\.icon|a\.icon|i\b|g\b|k\b|s\b|d\b|MAX_|MIN_|LANG|legalUrl|topbar|backbar|langSwitch|seg\(|sw\(|timerCard|modeOptions|catChips|scoreCard|countsLine|head|body|sec|hold\b|one\b|m\b|one === |back\b|R && R.practice|R.practice|first|why|rate|share|l\.words\.length|R\.counts|c\b|v\b|f\b|id\b|o\.|dark|light|i === |k === |R\.|guessers|holders|n \?|st ===|parts|rows|r\.awards|order|L\.length|P\.map|builtIn|a\.who|imps|clue|topic|ready|\(|"|')/;
+  const SAFE = /^(esc\(|de\.length|en\.length|BOMB_SRCS|bombSrcs|coach\(|canAct|modeBadge|L\.map|target\b|isPro\(\)|pro \?|paid\.map|platformId\(\)|sch \?|x\.res|sample\b|set\.cards\.length|mathOn|school\(\)|isSchool\(\)|world\(\)|worldSwitch|chips\(|ids\.map|w === |lock\b|T\.|teamMode|extraHtml|max\b|TEAM_COLORS|on\b|deckIcon|general\.map|withSchoolMath|customChips|chip\(|dot\(|levelSeg|playersCard|teamsCard|exScoreboard|awardRows|scoreTable|c\.icon|c\.f|pts|tm\b|sch\b|!!on|disabled|withAbort|MODES\.|fmtTime|b\.|l\b|String\(|act\b|disabledFn|options\.|buttons\.|\[\[|names\(|t\("|i \+ 1|n\b|k \* 90|MODE_ICON|CAT_ICON|R\.icon|a\.icon|i\b|g\b|k\b|s\b|d\b|MAX_|MIN_|LANG|legalUrl|topbar|backbar|langSwitch|seg\(|sw\(|timerCard|modeOptions|catChips|scoreCard|countsLine|head|body|sec|hold\b|one\b|m\b|one === |back\b|R && R.practice|R.practice|first|why|rate|share|l\.words\.length|R\.counts|c\b|v\b|f\b|id\b|o\.|dark|light|i === |k === |R\.|guessers|holders|n \?|st ===|parts|rows|r\.awards|order|L\.length|P\.map|builtIn|a\.who|imps|clue|topic|ready|\(|"|')/;
   const bad = [];
   for (const m of app.matchAll(/\$\{([^}]{0,60})/g)) if (!SAFE.test(m[1].trim())) bad.push(m[1].trim());
   ok(bad.length === 0, "Vorlagen ohne esc(): " + bad.slice(0, 8).join(" | "));

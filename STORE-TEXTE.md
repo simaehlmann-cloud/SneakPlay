@@ -20,9 +20,9 @@ Beschreibung 4000.
 SneakPlay – Partyspiel
 ```
 
-**Untertitel** (nur App Store Connect)
+**Untertitel** (nur App Store Connect, max. 30 Zeichen)
 ```
-Bluffen, Erklären & Missionen
+Für Freizeit und Schule
 ```
 
 **Kurzbeschreibung** (nur Play Console)
@@ -44,6 +44,9 @@ hochstapler,imposter,partyspiel,klassenspiel,mathe,unterricht,erklären,bluff,te
 ```
 Ein Handy, eine Runde, null Anmeldung: SneakPlay ist das Spiel zum Weiterreichen – für Freunde, Familie, Vereinsabende und den Unterricht. Modus wählen, Namen oder Teams eintragen, Handy reihum geben und loslegen.
 
+ZWEI BEREICHE: FREIZEIT UND SCHULE
+Oben auf der Startseite umschalten: In der Freizeit gibt es Begriffe aus Alltag, Essen, Tieren, Musik, Sport und mehr. In der Schule gibt es Karten für Mathe, Deutsch und Englisch nach Klassenstufe sowie unterrichtstaugliche Themen und Missionen. Jeder Bereich merkt sich seine eigene Auswahl.
+
 VIER SPIELMODI
 
 🎭 Hochstapler
@@ -60,12 +63,14 @@ Die App zeigt eine Aufgabe wie „Ein Tier“ oder „Eine Primzahl“. Begriff 
 
 FÜR DEN UNTERRICHT
 • Mathe-Karten nach Leitideen: Zahlen, Größen, Raum & Form, Funktionen, Daten & Zufall – mit Niveau nach Klassenstufe 5 bis 10
+• Deutsch: Sprache & Grammatik sowie Texte & Literatur – vom Nomen bis zur Metapher
+• Englisch: Alltag, Länder & Kultur, Grammatik – die Karten sind auf Englisch und werden auf Englisch erklärt, ein echter Sprechanlass
 • Zahlen-Hochstapler: Alle haben denselben Wert in anderer Darstellung (½, 0,5, 50 %) – wer hat etwas nicht Gleichwertiges? Auch mit Termen
 • „Zum Nachlernen“: Nach jeder Erklär-Partie stehen die schwierigen Begriffe als Liste bereit – mit einem Tipp gespeichert für die nächste Stunde
 • Klassen-Werkstatt: Gruppen erstellen Karten auf ihren Handys, die Lehrkraft sammelt sie per QR-Code in einer gemeinsamen Liste
 • Ganze Klassen spielen in Teams
 • Eigene Karten mit verbotenen Wörtern anlegen – gern von der Klasse selbst – und per QR-Code oder Text an andere Geräte weitergeben, ganz ohne Server und Konto
-• Schulmodus mit PIN: unterrichtstaugliche Themen und Missionen, keine Store- und Feedback-Knöpfe
+• Schulmodus mit PIN: sperrt die App auf den Bereich Schule – ohne Kaufknöpfe, Bewerten und „Alles löschen“
 
 SO FUNKTIONIERT’S
 • Geheim aufdecken: Finger auf die Karte halten – beim Loslassen ist sie sofort wieder verdeckt
@@ -73,10 +78,10 @@ SO FUNKTIONIERT’S
 • Auszeichnungen nach jeder Runde wie „Meister-Bluffer“, „Pokerface“ oder „Rettungs-Genie“ und ein Punktestand für den ganzen Abend
 
 INHALTE
-Über 180 Begriffe in neun Kategorien, über 180 Erklär-Karten mit je vier verbotenen Wörtern (davon über 100 aus der Mathematik), 40 Gesprächsthemen, über 60 Missionen und über 90 Bomben-Aufgaben.
+Über 180 Begriffe in neun Freizeit-Kategorien, über 300 Erklär-Karten mit je vier verbotenen Wörtern (davon über 100 aus Mathe, 60 aus Deutsch und 60 auf Englisch), 40 Gesprächsthemen, 70 Missionen und über 130 Bomben-Aufgaben.
 
 GRATIS UND VOLLVERSION
-Hochstapler ist dauerhaft gratis – mit allen Kategorien, auch Schule und Mathe. Eigene Karten, QR-Austausch, Teams und Schulmodus sind ebenfalls frei. Geheime Missionen, Erklär’s! und die Wort-Bombe lassen sich je zweimal testen und mit der Vollversion (einmaliger In-App-Kauf, kein Abo) unbegrenzt spielen.
+Hochstapler ist dauerhaft gratis – mit allen Kategorien in Freizeit und Schule. Eigene Karten, QR-Austausch, Teams und Schulmodus sind ebenfalls frei. Geheime Missionen, Erklär’s! und die Wort-Bombe lassen sich je zweimal testen und mit der Vollversion (einmaliger In-App-Kauf, kein Abo) unbegrenzt spielen.
 
 DATENSCHUTZ
 • Komplett offline spielbar
@@ -95,9 +100,10 @@ Für 2 bis 16 Personen oder ganze Klassen in Teams. Auf Deutsch und Englisch, im
 SneakPlay – Party Game
 ```
 
-**Subtitle** (App Store Connect only)
+**Subtitle** (App Store Connect only, max. 30 characters)
+
 ```
-Bluff, explain & secret tasks
+For free time & the classroom
 ```
 
 **Short description** (Play Console only)
@@ -118,6 +124,9 @@ imposter,party game,classroom,maths,explain words,team game,bluff,spy,game night
 **Description**
 ```
 One phone, one round, no sign-up: SneakPlay is the pass-around game for friends, family, clubs and the classroom. Pick a mode, enter names or teams, pass the phone around and play.
+
+TWO AREAS: FREE TIME AND SCHOOL
+Switch at the top of the home screen: free time brings words from everyday life, food, animals, music, sport and more. School brings maths cards by school year plus classroom-friendly topics and missions. Each area remembers its own selection.
 
 FOUR GAME MODES
 
@@ -140,7 +149,7 @@ FOR THE CLASSROOM
 • Class workshop: groups create cards on their phones, the teacher collects them by QR code into one shared list
 • Whole classes play in teams
 • Create your own cards with forbidden words – the class can make them too – and pass them to other devices by QR code or text, without any server or account
-• School mode with PIN: classroom-friendly topics and missions, no store or feedback buttons
+• School mode with PIN: locks the app to the School area – no purchase buttons, rating or “Delete everything”
 
 HOW IT WORKS
 • Secret reveal: hold your finger on the card – let go and it is hidden again straight away

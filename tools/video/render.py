@@ -21,39 +21,43 @@ FPS = 30
 
 CAP = {
     "de": {
-        "s1": ("Ein Handy. Vier Spiele.", "Für Spieleabend und Unterricht"),
+        "s1": ("Ein Handy. Vier Spiele.", "Für Partys, Spieleabend und Unterricht"),
         "s2": ("Geheim aufdecken", "Finger drauf – loslassen – weg"),
-        "s3": ("Wer blufft?", "Gemeinsam abstimmen"),
+        "s3": ("Wer blufft?", "Hochstapler entlarven"),
+        "s9": ("Geheime Missionen", "Wer hat gar keine?"),
         "s4": ("Erklär’s!", "Ohne die verbotenen Wörter"),
         "s5": ("Die Wort-Bombe tickt", "Begriff nennen – und weiter!"),
-        "s6": ("Freizeit & Schule", "Mathe, Deutsch und Englisch"),
+        "s6": ("Party oder Schule?", "Mit einem Tipp umschalten"),
         "s7": ("Punkte & Auszeichnungen", "Für den ganzen Abend"),
     },
     "en": {
-        "s1": ("One phone. Four games.", "For game nights and the classroom"),
+        "s1": ("One phone. Four games.", "For parties, game nights and lessons"),
         "s2": ("Reveal in secret", "Finger on – let go – hidden"),
-        "s3": ("Who’s bluffing?", "Vote together"),
+        "s3": ("Who’s bluffing?", "Expose the imposter"),
+        "s9": ("Secret missions", "Who has none at all?"),
         "s4": ("Explain it!", "Without the forbidden words"),
         "s5": ("The word bomb is ticking", "Say a word – and pass it on!"),
-        "s6": ("Free time & school", "Maths cards by school year"),
+        "s6": ("Party or school?", "Switch with one tap"),
         "s7": ("Scores & awards", "For the whole evening"),
     },
 }
 IPAD_S1 = {"de": "Ein Gerät. Vier Spiele.", "en": "One device. Four games."}
 # Länge je Szene in der App-Vorschau (Summe ≤ 30 s)
-PREVIEW = [("s1", 3.0), ("s2", 5.0), ("s3", 3.3), ("s4", 5.2), ("s5", 5.4), ("s6", 3.9), ("s7", 2.6)]
+PREVIEW = [("s1", 3.0), ("s2", 4.4), ("s3", 3.3), ("s9", 4.6), ("s4", 4.5), ("s5", 4.9), ("s6", 3.7)]
 
 YT = [  # (Szene, Länge, Titel DE, Unterzeile DE, Titel EN, Unterzeile EN)
     ("intro", 3.2, "SneakPlay", "Das Partyspiel für Freizeit und Schule", "SneakPlay", "The party game for free time and school"),
+    ("areas", 4.2, "", "", "Free time: parties, game nights, family and friends", "School: lessons, cover lessons, class trips"),
     ("s1", 3.0, "Ein Handy. Vier Spiele.", "Namen eintragen, Spiel wählen – los geht’s", "One phone. Four games.", "Enter names, pick a game – let’s go"),
     ("s2", 5.0, "Geheim aufdecken", "Finger drauf – loslassen – sofort wieder verdeckt", "Reveal in secret", "Finger on – let go – hidden again at once"),
     ("s3", 3.3, "Wer ist der Hochstapler?", "Diskutieren, abstimmen, entlarven", "Who is the imposter?", "Discuss, vote, expose"),
+    ("s9", 4.6, "Geheime Missionen", "Heimliche Aufgaben im Gespräch – einer hat gar keine", "Secret missions", "Hidden tasks in conversation – one player has none"),
     ("s4", 5.6, "Erklär’s!", "Begriffe erklären – ohne die verbotenen Wörter", "Explain it!", "Explain words – without the forbidden ones"),
     ("s5", 5.6, "Die Wort-Bombe tickt", "Begriff nennen, Handy weiter – bevor es knallt", "The word bomb is ticking", "Say a word, pass the phone – before it goes bang"),
-    ("s6", 3.9, "Freizeit & Schule", "Mathe, Deutsch und Englisch nach Klassenstufe", "Free time & school", "Maths, German and English by school year"),
+    ("s6", 3.9, "Party oder Schule?", "Party-Begriffe – oder Mathe, Deutsch und Englisch nach Klassenstufe", "Party or school?", "Party words – or maths, German and English by school year"),
     ("s8", 3.0, "Englisch? Auf Englisch!", "Englisch-Karten werden auf Englisch erklärt", "English? In English!", "English cards are explained in English"),
-    ("s7", 2.9, "Punkte & Auszeichnungen", "Für den ganzen Abend – oder die ganze Klasse", "Scores & awards", "For the whole evening – or the whole class"),
-    ("outro", 4.5, "Jetzt kostenlos laden", "Für iPhone, iPad und Android · ohne Konto, ohne Werbung", "Download now for free", "For iPhone, iPad and Android · no account, no ads"),
+    ("s7", 2.9, "Punkte & Auszeichnungen", "Für die Party – oder die ganze Klasse", "Scores & awards", "For the party – or the whole class"),
+    ("outro", 4.5, "Jetzt kostenlos laden", "Für Partys und Unterricht · iPhone, iPad und Android · ohne Konto, ohne Werbung", "Download now for free", "For parties and lessons · iPhone, iPad and Android · no account, no ads"),
 ]
 
 
@@ -260,6 +264,29 @@ def yt_bezel_png(path):
     im.save(path)
 
 
+def yt_areas_png(path):
+    """Zwei Bereiche: Freizeit und Schule."""
+    im = yt_background()
+    d = ImageDraw.Draw(im)
+    icon = Image.open(ICON).convert("RGBA").resize((84, 84), Image.LANCZOS)
+    m = Image.new("L", icon.size, 0); ImageDraw.Draw(m).rounded_rectangle([0, 0, 83, 83], radius=20, fill=255)
+    im.paste(icon, (YW // 2 - 190, 104), m)
+    d.text((YW // 2 - 86, 146), "SneakPlay", font=font(F_BOLD, 46), fill=WHITE, anchor="lm")
+    d.text((YW // 2, 250), "Ein Spiel – zwei Welten", font=font(F_BOLD, 84), fill=WHITE, anchor="ma")
+    panels = [("FREIZEIT", (255, 107, 157), ["Partys", "Spieleabende", "Familie & Freunde"]),
+              ("SCHULE", (255, 210, 93), ["Unterricht", "Vertretungsstunden", "Klassenfahrten"])]
+    pw, ph, gap = 700, 520, 80
+    x = (YW - 2 * pw - gap) // 2
+    for title, col, items in panels:
+        y = 420
+        d.rounded_rectangle([x, y, x + pw, y + ph], radius=44, fill=(34, 25, 74), outline=col, width=5)
+        d.text((x + pw // 2, y + 60), title, font=font(F_BOLD, 64), fill=col, anchor="ma")
+        for k, it in enumerate(items):
+            d.text((x + pw // 2, y + 200 + k * 92), it, font=font(F_SEMI, 52), fill=WHITE, anchor="ma")
+        x += pw + gap
+    im.save(path)
+
+
 def srt_time(t):
     ms = int(round(t * 1000)); h, ms = divmod(ms, 3600000); m, ms = divmod(ms, 60000); s, ms = divmod(ms, 1000)
     return f"{h:02d}:{m:02d}:{s:02d},{ms:03d}"
@@ -274,7 +301,10 @@ def youtube():
     for i, (s, dur, td, sd, te, se) in enumerate(YT):
         png = os.path.join(work, f"{s}.png")
         out = os.path.join(work, f"{i:02d}-{s}.mp4")
-        if s in ("intro", "outro"):
+        if s == "areas":
+            yt_areas_png(png)
+            still_scene(png, dur, out)
+        elif s in ("intro", "outro"):
             yt_frame_png(td, sd, png, with_phone=False, header=(s != "intro"))
             if s == "intro":  # Symbol groß rechts
                 im = Image.open(png); icon = Image.open(ICON).convert("RGBA").resize((420, 420), Image.LANCZOS)

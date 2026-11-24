@@ -145,6 +145,24 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     await sleep(700);
   });
 
+  /* 9 Geheime Missionen: Karte aufdecken, dann Auflösung */
+  const MIS = { de: ["Ihr eröffnet zusammen ein Café. Wie heißt es und was gibt es?", "Beantworte die nächste Frage, die dir gestellt wird, mit einer Gegenfrage."],
+    en: ["You're opening a café together. What's it called and what's on the menu?", "Answer the next question you're asked with another question."] }[LANG];
+  await page.evaluate(m => { store.set("mode", "missions"); setOpt("mis", DEF_MIS, { timer: 0, vote: "group" }); goHome(); beginRound("missions");
+    R.topic = m[0]; R.ms[0] = m[1]; R.none = 3; screenPass(); scrollTo(0, 0); document.activeElement && document.activeElement.blur(); }, MIS);
+  await sleep(400);
+  await scene("s9", async () => {
+    await sleep(250);
+    await hold("#hold", 1900);
+    await sleep(250);
+    await page.evaluate(() => { R.step = R.P.length; R.accused = R.none; screenResolve(); scrollTo(0, 0); document.activeElement && document.activeElement.blur(); });
+    await sleep(450);
+    await tap('[data-act="mopen"][data-v="0"]');
+    await sleep(500);
+    await tap('[data-act="mres"][data-v="0:ok"]');
+    await sleep(700);
+  });
+
   /* 4 Erklär's! */
   await page.evaluate(() => { store.set("mode", "explain"); goHome(); beginRound("explain"); scrollTo(0, 0); });
   await sleep(400);
